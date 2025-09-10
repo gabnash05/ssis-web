@@ -1,0 +1,36 @@
+// Main Types
+export interface Student {
+    id: number;             //from database
+    id_number: string;      //YYYY-NNNN
+    first_name: string;
+    last_name: string;
+    year_level: number;
+    gender: Gender;
+    program_code: string;   //FK to Program.program_code
+}
+
+export interface Program {
+    program_code: string;   //e.g., "BSCS"
+    program_name: string;   //e.g., "Bachelor of Science in Computer Science"
+    college_code: string;   //FK to College.college_code
+}
+
+export interface College {
+    college_code: string;   //e.g., "COE"
+    college_name: string;   //e.g., "College of Engineering"
+}
+
+// Auxiliary Types
+export interface Paginated<T> {
+    items: T[];
+    meta: {
+        page: number;
+        per_page: number;
+        total: number;
+    };
+}
+
+// Utility Types
+export type SortOrder = "ASC" | "DESC";
+
+export type Gender = "MALE" | "FEMALE" | "OTHER";
