@@ -42,3 +42,5 @@ export interface QueryParams {
 // Utility Types
 export type SortOrder = "ASC" | "DESC";
 export type Gender = "MALE" | "FEMALE" | "OTHER";
+
+export type ApplicationPage = "STUDENTS" | "PROGRAMS" | "COLLEGES";

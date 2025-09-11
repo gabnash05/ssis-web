@@ -1,29 +1,49 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { ApplicationPage } from '../types'
 
-const tabPositions = [0, 1, 2]
-const selectedTab = ref(0)
+/* ------------------- Props & Emits ------------------- */
+const props = defineProps<{
+    currentPage: ApplicationPage
+}>()
+
+const emit = defineEmits<{
+    (e: 'change-page', page: ApplicationPage): void
+}>()
+
+/* ------------------- Sidebar State ------------------- */
 const sidebarOpen = ref(false)
 const showLabels = ref(false)
 const showLogo = ref(false)
 
+/* ------------------- Tab Logic ------------------- */
+const tabPositions = [0, 1, 2] // 0: Students, 1: Programs, 2: Colleges
+const selectedTab = computed(() => {
+    switch (props.currentPage) {
+        case 'STUDENTS': return 0
+        case 'PROGRAMS': return 1
+        case 'COLLEGES': return 2
+        default: return 0
+    }
+})
+
 const highlightPosition = computed(() => `${selectedTab.value * 3.5}rem`)
 const highlightWidth = computed(() => (sidebarOpen.value ? '11rem' : '2.5rem'))
 
-function selectTab(index) {
-    selectedTab.value = index
+function selectTab(index: number) {
+    const page: ApplicationPage =
+        index === 0 ? 'STUDENTS' : index === 1 ? 'PROGRAMS' : 'COLLEGES'
+    emit('change-page', page)
 }
 
 function toggleSidebar() {
     if (sidebarOpen.value) {
-        // CLOSE: fade out text & logo first
+        // CLOSE: fade out first, then collapse
         showLabels.value = false
         showLogo.value = false
-        setTimeout(() => {
-            sidebarOpen.value = false
-        }, 200)
+        setTimeout(() => (sidebarOpen.value = false), 200)
     } else {
-        // OPEN: expand first, then fade in logo and labels
+        // OPEN: expand first, then fade in
         sidebarOpen.value = true
         setTimeout(() => {
             showLogo.value = true
@@ -41,6 +61,7 @@ function toggleSidebar() {
         <div class="absolute w-[450px] h-[450px] bg-[#2cdfdf]/20 rounded-full blur-[90px] bottom-1/4 left-1/2"></div>
     </div>
 
+    <!-- Glass Background -->
     <div class="min-h-screen py-7 px-15 flex justify-center items-center">
         <div class="w-full h-full max-h-[calc(100vh-5rem)] flex p-8 rounded-xl bg-glass border border-white/10 shadow-xl">
             
@@ -95,7 +116,7 @@ function toggleSidebar() {
 
                         <!-- Tab buttons -->
                         <div
-                            v-for="(tab, index) in tabPositions"
+                            v-for="(_, index) in tabPositions"
                             :key="index"
                             class="relative flex items-center gap-3 cursor-pointer w-full h-10 rounded-md transition-all duration-300 hover:bg-white/5"
                             :class="sidebarOpen ? 'pl-2' : 'pl-[6px]'"
@@ -141,6 +162,11 @@ function toggleSidebar() {
                     </transition>
                 </div>
             </nav>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 px-6 overflow-y-auto">
+                <slot />
+            </div>
         </div>
     </div>
 </template>
