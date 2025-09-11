@@ -1,0 +1,158 @@
+<script setup>
+import { ref, computed } from 'vue'
+
+const tabPositions = [0, 1, 2]
+const selectedTab = ref(0)
+const sidebarOpen = ref(false)
+const showLabels = ref(false)
+const showLogo = ref(false)
+
+const highlightPosition = computed(() => `${selectedTab.value * 3.5}rem`)
+const highlightWidth = computed(() => (sidebarOpen.value ? '11rem' : '2.5rem'))
+
+function selectTab(index) {
+    selectedTab.value = index
+}
+
+function toggleSidebar() {
+    if (sidebarOpen.value) {
+        // CLOSE: fade out text & logo first
+        showLabels.value = false
+        showLogo.value = false
+        setTimeout(() => {
+            sidebarOpen.value = false
+        }, 200)
+    } else {
+        // OPEN: expand first, then fade in logo and labels
+        sidebarOpen.value = true
+        setTimeout(() => {
+            showLogo.value = true
+            showLabels.value = true
+        }, 250)
+    }
+}
+</script>
+
+<template>
+    <!-- Background -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute w-[500px] h-[500px] bg-[#2e64b0]/40 rounded-full blur-[100px] top-1/4 left-1/4"></div>
+        <div class="absolute w-[600px] h-[600px] bg-[#d425c9]/20 rounded-full blur-[120px] top-2/3 right-1/4"></div>
+        <div class="absolute w-[450px] h-[450px] bg-[#2cdfdf]/20 rounded-full blur-[90px] bottom-1/4 left-1/2"></div>
+    </div>
+
+    <div class="min-h-screen py-7 px-15 flex justify-center items-center">
+        <div class="w-full h-full max-h-[calc(100vh-5rem)] flex p-8 rounded-xl bg-glass border border-white/10 shadow-xl">
+            
+            <!-- Sidebar -->
+            <nav
+                id="sidebar"
+                class="relative flex flex-col h-full justify-between gap-[35vh] bg-[#1d1d1d] rounded-xl p-4 transition-all duration-300 ease-in-out overflow-hidden"
+                :class="sidebarOpen ? 'w-52' : 'w-18'"
+            >
+                <div class="flex flex-col gap-5 w-full">
+                    <!-- Top Control Button Row -->
+                    <div class="flex justify-between items-center w-full">
+                        <!-- Logo (fades in when sidebar is open) -->
+                        <transition name="fade">
+                            <div v-if="showLogo" class="w-10 h-10 bg-white rounded-md"></div>
+                        </transition>
+
+                        <!-- Toggle Button (always right-aligned) -->
+                        <button
+                            @click.stop="toggleSidebar"
+                            class="w-10 h-10 rounded-md flex justify-center items-center hover:bg-white/5 transition cursor-pointer"
+                        >
+                            <transition name="fade" mode="out-in">
+                                <img
+                                    v-if="!sidebarOpen"
+                                    key="chevron-right"
+                                    src="../assets/icons/chevron-right.svg"
+                                    alt="Open Sidebar"
+                                    class="w-5 h-5 filter invert"
+                                >
+                                <img
+                                    v-else
+                                    key="chevron-left"
+                                    src="../assets/icons/chevron-left.svg"
+                                    alt="Close Sidebar"
+                                    class="w-5 h-5 filter invert"
+                                >
+                            </transition>
+                        </button>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="relative flex flex-col gap-4 mt-6 w-full">
+                        <!-- Moving glass highlight -->
+                        <div
+                            class="absolute h-10 rounded-md bg-glass border border-white/10 shadow-xl transition-all duration-300 ease-in-out"
+                            :style="{ 
+                                top: highlightPosition, 
+                                width: highlightWidth,
+                            }"
+                        ></div>
+
+                        <!-- Tab buttons -->
+                        <div
+                            v-for="(tab, index) in tabPositions"
+                            :key="index"
+                            class="relative flex items-center gap-3 cursor-pointer w-full h-10 rounded-md transition-all duration-300 hover:bg-white/5"
+                            :class="sidebarOpen ? 'pl-2' : 'pl-[6px]'"
+                            @click="selectTab(index)"
+                        >
+                            <img
+                                v-if="index === 0"
+                                src="../assets/icons/student.svg"
+                                alt="Students"
+                                class="w-6 h-6 filter invert"
+                            >
+                            <img
+                                v-else-if="index === 1"
+                                src="../assets/icons/close-book.svg"
+                                alt="Programs"
+                                class="w-6 h-6 filter invert"
+                            >
+                            <img
+                                v-else
+                                src="../assets/icons/school.svg"
+                                alt="Colleges"
+                                class="w-6 h-6 filter invert"
+                            >
+
+                            <!-- Tab Labels -->
+                            <transition name="fade">
+                                <span v-if="showLabels" class="text-white text-sm whitespace-nowrap">
+                                    {{ index === 0 ? 'Students' : index === 1 ? 'Programs' : 'Colleges' }}
+                                </span>
+                            </transition>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom icon + Settings -->
+                <div
+                    class="flex items-center gap-3 w-full h-10 rounded-md transition-all duration-300 cursor-pointer hover:bg-white/5"
+                    :class="sidebarOpen ? 'pl-2' : 'pl-[6px]'"
+                >
+                    <img src="../assets/icons/adjust.svg" alt="Settings" class="w-6 h-6 filter invert">
+                    <transition name="fade">
+                        <span v-if="showLabels" class="text-white text-sm whitespace-nowrap">Settings</span>
+                    </transition>
+                </div>
+            </nav>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateX(-10px);
+}
+</style>

@@ -30,7 +30,15 @@ export interface Paginated<T> {
     };
 }
 
+export interface QueryParams {
+    page?: number;
+    per_page?: number;
+    sort_by?: keyof Student | keyof Program | keyof College;
+    sort_order?: SortOrder;
+    filter?: Partial<Record<keyof Student | keyof Program | keyof College, string | number>>;
+    query?: string;
+}
+
 // Utility Types
 export type SortOrder = "ASC" | "DESC";
-
 export type Gender = "MALE" | "FEMALE" | "OTHER";
