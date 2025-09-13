@@ -1,6 +1,5 @@
 // Main Types
 export interface Student {
-    id: number;             //from database
     id_number: string;      //YYYY-NNNN
     first_name: string;
     last_name: string;
