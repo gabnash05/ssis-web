@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
 import type { SortOrder } from '../types'
 
 interface TableColumn<T> {
@@ -64,14 +63,14 @@ function handleHeaderClick(col: TableColumn<any>) {
                                     <img
                                         v-if="sortBy === col.key && sortOrder === 'ASC'"
                                         key="ASC"
-                                        src="../assets/icons/chevron-up.svg"
+                                        src="../assets/icons/chevron-down.svg"
                                         alt="ASCending Sort"
                                         class="absolute inset-0 w-3 h-3 filter invert"
                                     />
                                     <img
                                         v-else-if="sortBy === col.key && sortOrder === 'DESC'"
                                         key="DESC"
-                                        src="../assets/icons/chevron-down.svg"
+                                        src="../assets/icons/chevron-up.svg"
                                         alt="DESCending Sort"
                                         class="absolute inset-0 w-3 h-3 filter invert"
                                     />
@@ -146,7 +145,7 @@ function handleHeaderClick(col: TableColumn<any>) {
                             <img
                                 src="../assets/icons/open-trash.svg"
                                 alt="Delete Hover"
-                                class="absolute inset-0 m-auto w-5 h-5 filter invert opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
+                                class="absolute inset-0 m-auto w-6 h-6 filter invert opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
                             >
                         </button>
                     </td>

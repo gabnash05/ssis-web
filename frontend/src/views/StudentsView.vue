@@ -1,35 +1,45 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import DataTable from '../components/DataTable.vue'
+import SearchBar from '../components/SearchBar.vue'
 import type { SortOrder, Student } from '../types'
 
 const students = ref<Student[]>([])
 const sortBy = ref<string>('id_number')
 const sortOrder = ref<SortOrder>('ASC')
+const searchTerm = ref('')
 
-function fetchStudents() {
-    // Here you'd call your API with sortBy + sortOrder
-    // Example: /api/students?sortBy=id_number&order=asc
+async function fetchStudents() {
+    // 🔹 Normally call your backend API here with query params
+    // Example: /api/students?search=...&sortBy=...&sortOrder=...
+    // For now, we simulate:
     students.value = [
         { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
         { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' }
     ]
 }
+
+// Fetch on load
 fetchStudents()
 
-watch([sortBy, sortOrder], fetchStudents)
+// 🔹 Watch for search, sort changes — re-fetch from backend
+watch([sortBy, sortOrder, searchTerm], fetchStudents)
 
 // Actions
-function handleEdit(student: Student) {
+async function handleEdit(student: Student) {
     console.log('Open Edit Dialog for', student)
-    // Open modal or dialog component here
-    // After dialog closes, call fetchStudents() to refresh
+    // 🔹 Open modal or navigate to edit form
+    // After saving changes (API PUT/PATCH), refresh table:
+    console.log(`Saving changes for ${student.id_number}...`)
+    await fetchStudents()
 }
 
-function handleDelete(student: Student) {
+async function handleDelete(student: Student) {
     console.log('Confirm delete for', student)
-    // Show confirmation dialog, then call API
-    // After delete success, call fetchStudents()
+    // 🔹 Call API DELETE /students/:id
+    // After deletion succeeds:
+    console.log(`Deleting ${student.id_number}...`)
+    await fetchStudents()
 }
 
 const studentColumns = [
@@ -44,7 +54,11 @@ const studentColumns = [
 
 <template>
     <div>
-        <h1 class="text-2xl font-bold mb-4 text-white">Students</h1>
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-white">Students</h1>
+            <SearchBar v-model="searchTerm" />
+        </div>
+
         <DataTable
             :columns="studentColumns"
             :rows="students"
