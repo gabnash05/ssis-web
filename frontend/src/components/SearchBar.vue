@@ -2,7 +2,9 @@
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 const searchTerm = ref('')
-const isOpen = ref(false)
+const isOpen = ref(true)
+const debounceTimer = ref<number | null>(null)
+const debounceDelay = 300 // ms delay before emitting
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void
@@ -28,14 +30,23 @@ function toggle() {
     isOpen.value ? close() : open()
 }
 
-watch(searchTerm, (v) => emit('update:modelValue', v))
+// Debounced watcher
+watch(searchTerm, (v) => {
+    if (debounceTimer.value) clearTimeout(debounceTimer.value)
+    debounceTimer.value = window.setTimeout(() => {
+        emit('update:modelValue', v)
+    }, debounceDelay)
+})
 
 function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && isOpen.value) close()
 }
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onKeydown)
+    if (debounceTimer.value) clearTimeout(debounceTimer.value)
+})
 </script>
 
 <template>

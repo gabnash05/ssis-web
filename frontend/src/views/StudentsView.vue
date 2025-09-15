@@ -2,28 +2,61 @@
 import { ref, watch } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
+import PaginationControls from '../components/PaginationControls.vue'
 import type { SortOrder, Student } from '../types'
 
 const students = ref<Student[]>([])
 const sortBy = ref<string>('id_number')
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
+const totalPages = ref(10)
+const currentPage = ref(1)
+const pageSize = ref(50)
 
 async function fetchStudents() {
     // 🔹 Normally call your backend API here with query params
     // Example: /api/students?search=...&sortBy=...&sortOrder=...
     // For now, we simulate:
+    console.log(`Fetching students ${searchTerm.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`)
     students.value = [
         { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
-        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' }
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
+        { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
+        
     ]
 }
 
 // Fetch on load
 fetchStudents()
 
-// 🔹 Watch for search, sort changes — re-fetch from backend
-watch([sortBy, sortOrder, searchTerm], fetchStudents)
+watch([sortBy, sortOrder, searchTerm, currentPage, pageSize], fetchStudents)
 
 // Actions
 async function handleEdit(student: Student) {
@@ -68,6 +101,14 @@ const studentColumns = [
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"
             @delete="handleDelete"
+        />
+
+        <PaginationControls
+            :total-pages="totalPages"
+            :current-page="currentPage"
+            :page-size="pageSize"
+            @update:page="currentPage = $event"
+            @update:pageSize="pageSize = $event"
         />
     </div>
 </template>
