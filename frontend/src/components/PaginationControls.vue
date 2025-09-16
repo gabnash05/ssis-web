@@ -63,7 +63,7 @@ function submitGotoPage() {
         </div>
 
         <!-- Pagination Controls -->
-        <div class="flex flex-wrap items-center gap-1">
+        <div class="flex flex-wrap items-center gap-2">
             <!-- Prev Button -->
             <button
                 @click="changePage(props.currentPage - 1)"
@@ -105,7 +105,7 @@ function submitGotoPage() {
                     v-model="gotoPage"
                     @keydown.enter="submitGotoPage"
                     @blur="submitGotoPage"
-                    class="w-14 text-center bg-white/20 border border-white/10 rounded text-sm text-white outline-none focus:ring-1 focus:ring-white/50 transition-colors duration-200"
+                    class="w-14 text-center bg-white/20 py-1 border border-white/10 rounded text-sm text-white outline-none focus:ring-1 focus:ring-white/50 transition-colors duration-200"
                     :min="1"
                     :max="props.totalPages"
                 />

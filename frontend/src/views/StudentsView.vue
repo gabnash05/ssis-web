@@ -9,6 +9,7 @@ const students = ref<Student[]>([])
 const sortBy = ref<string>('id_number')
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
+const searchBy = ref('id_number')
 const totalPages = ref(10)
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -17,7 +18,7 @@ async function fetchStudents() {
     // 🔹 Normally call your backend API here with query params
     // Example: /api/students?search=...&sortBy=...&sortOrder=...
     // For now, we simulate:
-    console.log(`Fetching students ${searchTerm.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`)
+    console.log(`Fetching students ${searchTerm.value} search by ${searchBy.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`)
     students.value = [
         { id_number: '2025-0001', first_name: 'Alice', last_name: 'Reyes', year_level: 1, gender: 'FEMALE', program_code: 'BSCS' },
         { id_number: '2025-0002', first_name: 'Ben', last_name: 'Lopez', year_level: 1, gender: 'MALE', program_code: 'BSIT' },
@@ -56,7 +57,7 @@ async function fetchStudents() {
 // Fetch on load
 fetchStudents()
 
-watch([sortBy, sortOrder, searchTerm, currentPage, pageSize], fetchStudents)
+watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents)
 
 // Actions
 async function handleEdit(student: Student) {
@@ -75,6 +76,11 @@ async function handleDelete(student: Student) {
     await fetchStudents()
 }
 
+async function handleAdd() {
+    console.log('Open Add Student Dialog...')
+    // 🔹 Show modal or navigate to a student creation form here
+}
+
 const studentColumns = [
     { key: 'id_number', label: 'ID Number', sortable: true },
     { key: 'first_name', label: 'First Name', sortable: true },
@@ -87,9 +93,31 @@ const studentColumns = [
 
 <template>
     <div>
+        <!-- Header Section -->
         <div class="flex items-center justify-between mb-4">
-            <h1 class="text-2xl font-bold text-white">Students</h1>
-            <SearchBar v-model="searchTerm" />
+            <!-- Left section: title + add button -->
+            <div class="flex items-center gap-5">
+                <h1 class="text-2xl font-bold text-white">Students</h1>
+
+                <!-- Add Student Button -->
+                <button
+                    @click="handleAdd"
+                    class="px-4 py-2 bg-glass border border-white/20 rounded-xl text-white hover:bg-white/20 cursor-pointer transition flex items-center gap-2"
+                >
+                    <img
+                        src="../assets/icons/circle-plus.svg"
+                        alt="Add"
+                        class="w-4 h-4 filter invert"
+                    />
+                    <span class="text-sm font-medium">Add Student</span>
+                </button>
+            </div>
+
+            <SearchBar
+                v-model="searchTerm"
+                v-model:searchBy="searchBy"
+                :searchByOptions="studentColumns"
+            />
         </div>
 
         <DataTable
