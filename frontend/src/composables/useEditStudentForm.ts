@@ -1,8 +1,8 @@
 import { ref, watch } from 'vue'
 import { fetchColleges, fetchPrograms } from '../utils/fetchData'
 
-export function useAddStudentForm(emit: any) {
-    const newStudent = ref({
+export function useEditStudentForm(emit: any) {
+    const editedStudent = ref({
         id_number: '',
         first_name: '',
         last_name: '',
@@ -29,13 +29,13 @@ export function useAddStudentForm(emit: any) {
     watch(college_code, (code) => {
         filteredPrograms.value = programs.value.filter((p) => p.college_code === code)
 
-        if (!filteredPrograms.value.some((p) => p.code === newStudent.value.program_code)) {
-            newStudent.value.program_code = ''
+        if (!filteredPrograms.value.some((p) => p.code === editedStudent.value.program_code)) {
+            editedStudent.value.program_code = ''
         }
     })
 
     function resetForm() {
-        Object.assign(newStudent.value, {
+        Object.assign(editedStudent.value, {
             id_number: '',
             first_name: '',
             last_name: '',
@@ -60,26 +60,37 @@ export function useAddStudentForm(emit: any) {
         programs.value = await fetchPrograms()
     }
 
+    function loadStudent(student: any) {
+        Object.assign(editedStudent.value, student)
+        college_code.value = findCollegeCodeByProgram(student.program_code)
+        filteredPrograms.value = programs.value.filter((p) => p.college_code === college_code.value)
+    }
+
+    function findCollegeCodeByProgram(programCode: string): string {
+        const program = programs.value.find((p) => p.code === programCode)
+        return program ? program.college_code : ''
+    }
+
     function validateForm() {
         const currentErrors = {
-            id_number: newStudent.value.id_number.trim() ? '' : 'Required*',
-            first_name: newStudent.value.first_name.trim() ? '' : 'Required*',
-            last_name: newStudent.value.last_name.trim() ? '' : 'Required*',
-            year_level: newStudent.value.year_level ? '' : 'Required*',
-            gender: newStudent.value.gender ? '' : 'Required*',
+            id_number: editedStudent.value.id_number.trim() ? '' : 'Required*',
+            first_name: editedStudent.value.first_name.trim() ? '' : 'Required*',
+            last_name: editedStudent.value.last_name.trim() ? '' : 'Required*',
+            year_level: editedStudent.value.year_level ? '' : 'Required*',
+            gender: editedStudent.value.gender ? '' : 'Required*',
             college_code: college_code.value ? '' : 'Required*',
-            program_code: newStudent.value.program_code ? '' : 'Required*',
+            program_code: editedStudent.value.program_code ? '' : 'Required*',
         }
 
-        if (newStudent.value.first_name.trim() && newStudent.value.first_name.trim().length > 50) {
+        if (editedStudent.value.first_name.trim() && editedStudent.value.first_name.trim().length > 50) {
             currentErrors.first_name = 'Too Long'
         }
 
-        if (newStudent.value.last_name.trim() && newStudent.value.last_name.trim().length > 50) {
+        if (editedStudent.value.last_name.trim() && editedStudent.value.last_name.trim().length > 50) {
             currentErrors.last_name = 'Too Long'
         }
 
-        if (newStudent.value.id_number.trim() && !/^[0-9]{4}-[0-9]{4}$/.test(newStudent.value.id_number)) {
+        if (editedStudent.value.id_number.trim() && !/^[0-9]{4}-[0-9]{4}$/.test(editedStudent.value.id_number)) {
             currentErrors.id_number = 'Format: YYYY-NNNN'
         }
 
@@ -99,13 +110,13 @@ export function useAddStudentForm(emit: any) {
         }
         
         value = value.slice(0, 9)
-        newStudent.value.id_number = value
+        editedStudent.value.id_number = value
 
         input.value = value
     }
 
     return {
-        newStudent,
+        editedStudent,
         errors,
         college_code,
         colleges,
@@ -113,6 +124,7 @@ export function useAddStudentForm(emit: any) {
         filteredPrograms,
         resetForm,
         fetchInitialData,
+        loadStudent,
         handleSubmit,
         handleIdInput,
     }

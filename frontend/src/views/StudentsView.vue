@@ -4,6 +4,7 @@ import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
 import AddStudentModal from '../components/AddStudentModal.vue'
+import EditStudentModal from '../components/EditStudentModal.vue'
 import type { SortOrder, Student } from '../types'
 
 // =========================
@@ -34,6 +35,8 @@ const pageSize = ref(50)
 // Modal State
 // =========================
 const showAddModal = ref(false)
+const showEditModal = ref(false)
+const studentToEdit = ref<Student | null>(null)
 
 // =========================
 // Fetch Students (Mock)
@@ -51,6 +54,14 @@ async function fetchStudents() {
             gender: 'FEMALE',
             program_code: 'BSCS',
         },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
     ]
 }
 
@@ -60,9 +71,13 @@ watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStu
 // =========================
 // Actions
 // =========================
-async function handleEdit(student: Student) {
-    console.log('Open Edit Dialog for', student)
-    await fetchStudents()
+function handleAdd() {
+    showAddModal.value = true
+}
+
+function handleEdit(student: Student) {
+    studentToEdit.value = student
+    showEditModal.value = true
 }
 
 async function handleDelete(student: Student) {
@@ -70,14 +85,18 @@ async function handleDelete(student: Student) {
     await fetchStudents()
 }
 
-function handleAdd() {
-    showAddModal.value = true
-}
-
 async function handleStudentSubmit(student: Student) {
     console.log('Submitting new student:', student)
     // 🔹 API POST call here
     showAddModal.value = false
+    await fetchStudents()
+}
+
+async function handleStudentEdit(student: Student) {
+    console.log('Updating student:', student)
+    // 🔹 API PUT/PATCH call here
+    showEditModal.value = false
+    studentToEdit.value = null
     await fetchStudents()
 }
 </script>
@@ -134,6 +153,13 @@ async function handleStudentSubmit(student: Student) {
         <AddStudentModal
             v-model="showAddModal"
             @submit="handleStudentSubmit"
+        />
+
+        <!-- Edit Student Modal -->
+        <editStudentModal
+            v-model="showEditModal"
+            :student="studentToEdit"
+            @submit="handleStudentEdit"
         />
     </div>
 </template>

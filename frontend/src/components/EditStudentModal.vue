@@ -2,26 +2,31 @@
 import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
-import { useAddStudentForm } from '../composables/useAddStudentForm'
+import { useEditStudentForm } from '../composables/useEditStudentForm.ts'
 
-// Props & Emits
-const props = defineProps<{ modelValue: boolean }>()
+const props = defineProps<{
+    modelValue: boolean
+    student: any | null // 👈 The student record to edit
+}>()
+
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
     (e: 'submit', student: any): void
 }>()
 
 const {
-    newStudent,
+    editedStudent,
     errors,
     college_code,
     colleges,
+    programs,
     filteredPrograms,
     handleSubmit,
     handleIdInput,
     resetForm,
     fetchInitialData,
-} = useAddStudentForm(emit)
+    loadStudent,
+} = useEditStudentForm(emit)
 
 // Confirmation Dialog State
 const showConfirm = ref(false)
@@ -34,7 +39,7 @@ function handleValidatedSubmit() {
 }
 
 function confirmSubmit() {
-    emit('submit', { ...newStudent.value })
+    emit('submit', { ...editedStudent.value })
     emit('update:modelValue', false)
     resetForm()
     showConfirm.value = false
@@ -44,28 +49,38 @@ function cancelSubmit() {
     showConfirm.value = false
 }
 
-// Reset form & fetch data when modal opens
 watch(
     () => props.modelValue,
     async (isOpen) => {
-        if (isOpen) {
+        if (isOpen && props.student) {
             resetForm()
             await fetchInitialData()
+            loadStudent(props.student)
         }
     }
+)
+
+watch(
+    () => props.student,
+    (student) => {
+        if (props.modelValue && student) {
+            loadStudent(student)
+        }
+    },
+    { immediate: true }
 )
 </script>
 
 <template>
     <RecordFormModal
         :model-value="modelValue"
-        title="Add New Student"
+        title="Edit Student"
         @update:modelValue="$emit('update:modelValue', $event)"
         @submit="handleValidatedSubmit"
         @cancel="resetForm"
     >
         <p class="text-sm text-white/60 mb-4">
-            Fill out the student's information below.
+            Edit the student's information below.
         </p>
 
         <div class="flex flex-col gap-4">
@@ -78,7 +93,7 @@ watch(
                     </span>
                 </label>
                 <input
-                    :value="newStudent.id_number"
+                    :value="editedStudent.id_number"
                     @input="handleIdInput"
                     placeholder="YYYY-NNNN"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
@@ -92,7 +107,7 @@ watch(
                     <span v-if="errors.first_name" class="text-red-400 ml-2">{{ errors.first_name }}</span>
                 </label>
                 <input
-                    v-model="newStudent.first_name"
+                    v-model="editedStudent.first_name"
                     placeholder="John"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
                 />
@@ -105,7 +120,7 @@ watch(
                     <span v-if="errors.last_name" class="text-red-400 ml-2">{{ errors.last_name }}</span>
                 </label>
                 <input
-                    v-model="newStudent.last_name"
+                    v-model="editedStudent.last_name"
                     placeholder="Doe"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
                 />
@@ -118,7 +133,7 @@ watch(
                     <span v-if="errors.year_level" class="text-red-400 ml-2">{{ errors.year_level }}</span>
                 </label>
                 <select
-                    v-model="newStudent.year_level"
+                    v-model="editedStudent.year_level"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
                 >
                     <option :value="1">1st Year</option>
@@ -135,7 +150,7 @@ watch(
                     <span v-if="errors.gender" class="text-red-400 ml-2">{{ errors.gender }}</span>
                 </label>
                 <select
-                    v-model="newStudent.gender"
+                    v-model="editedStudent.gender"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
                 >
                     <option value="FEMALE">Female</option>
@@ -168,7 +183,7 @@ watch(
                     <span v-if="errors.program_code" class="text-red-400 ml-2">{{ errors.program_code }}</span>
                 </label>
                 <select
-                    v-model="newStudent.program_code"
+                    v-model="editedStudent.program_code"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400 disabled:opacity-50"
                     :disabled="filteredPrograms.length === 0"
                 >
@@ -188,9 +203,9 @@ watch(
     <!-- Confirmation Dialog -->
     <ConfirmDialog
         v-model="showConfirm"
-        title="Confirm Add Student"
-        :message="'Are you sure you want to add this student?'"
-        :confirmText="'Add'"
+        title="Confirm Edit Student"
+        :message="'Are you sure you want to edit this student?'"
+        :confirmText="'Edit'"
         :cancelText="'Cancel'"
         @confirm="confirmSubmit"
         @cancel="cancelSubmit"
