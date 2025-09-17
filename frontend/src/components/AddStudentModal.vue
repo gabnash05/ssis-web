@@ -192,6 +192,7 @@ watch(
         :message="'Are you sure you want to add this student?'"
         :confirmText="'Add'"
         :cancelText="'Cancel'"
+        :confirmVariant="'primary'"
         @confirm="confirmSubmit"
         @cancel="cancelSubmit"
     >

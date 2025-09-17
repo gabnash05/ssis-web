@@ -5,6 +5,7 @@ import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
 import AddStudentModal from '../components/AddStudentModal.vue'
 import EditStudentModal from '../components/EditStudentModal.vue'
+import ConfirmationDialog from '../components/ConfirmDialog.vue'
 import type { SortOrder, Student } from '../types'
 
 // =========================
@@ -37,6 +38,8 @@ const pageSize = ref(50)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const studentToEdit = ref<Student | null>(null)
+const showConfirmDialog = ref(false)
+const studentToDelete = ref<Student | null>(null)
 
 // =========================
 // Fetch Students (Mock)
@@ -46,6 +49,102 @@ async function fetchStudents() {
         `Fetching students ${searchTerm.value} search by ${searchBy.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`
     )
     students.value = [
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
+        {
+            id_number: '2025-0001',
+            first_name: 'Alice',
+            last_name: 'Reyes',
+            year_level: 1,
+            gender: 'FEMALE',
+            program_code: 'BSCS',
+        },
+        {
+            id_number: '2025-0002',
+            first_name: 'John',
+            last_name: 'Doe',
+            year_level: 1,
+            gender: 'MALE',
+            program_code: 'BSIT',
+        },
         {
             id_number: '2025-0001',
             first_name: 'Alice',
@@ -81,8 +180,8 @@ function handleEdit(student: Student) {
 }
 
 async function handleDelete(student: Student) {
-    console.log('Confirm delete for', student)
-    await fetchStudents()
+    studentToDelete.value = student
+    showConfirmDialog.value = true
 }
 
 async function handleStudentSubmit(student: Student) {
@@ -98,6 +197,14 @@ async function handleStudentEdit(student: Student) {
     showEditModal.value = false
     studentToEdit.value = null
     await fetchStudents()
+}
+
+async function handleStudentDelete() {
+    if (!studentToDelete.value) return
+    console.log('Deleting student:', studentToDelete.value)
+    // 🔹 API DELETE call here
+    await fetchStudents()
+    studentToDelete.value = null
 }
 </script>
 
@@ -156,10 +263,20 @@ async function handleStudentEdit(student: Student) {
         />
 
         <!-- Edit Student Modal -->
-        <editStudentModal
+        <EditStudentModal
             v-model="showEditModal"
             :student="studentToEdit"
             @submit="handleStudentEdit"
+        />
+
+        <!-- Confirm Delete Dialog -->
+        <ConfirmationDialog
+            v-model="showConfirmDialog"
+            title="Delete Student"
+            :message="`Are you sure you want to delete ${studentToDelete?.first_name} ${studentToDelete?.last_name}?`"
+            confirm-text="Delete"
+            confirm-variant="danger"
+            @confirm="handleStudentDelete"
         />
     </div>
 </template>

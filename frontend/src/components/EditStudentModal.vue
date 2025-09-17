@@ -207,6 +207,7 @@ watch(
         :message="'Are you sure you want to edit this student?'"
         :confirmText="'Edit'"
         :cancelText="'Cancel'"
+        :confirmVariant="'primary'"
         @confirm="confirmSubmit"
         @cancel="cancelSubmit"
     >

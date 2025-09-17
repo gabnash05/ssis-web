@@ -7,6 +7,7 @@ const props = defineProps<{
     message?: string
     confirmText?: string
     cancelText?: string
+    confirmVariant?: 'primary' | 'danger' | 'success' 
 }>()
 
 const emit = defineEmits<{
@@ -73,7 +74,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
                         </button>
                         <button
                             @click="confirm"
-                            class="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer"
+                            class="px-4 py-2 rounded-xl text-white transition cursor-pointer"
+                            :class="{
+                                'bg-blue-500 hover:bg-blue-600': confirmVariant === 'primary' || !confirmVariant,
+                                'bg-red-500 hover:bg-red-600': confirmVariant === 'danger',
+                                'bg-green-500 hover:bg-green-600': confirmVariant === 'success'
+                            }"
                         >
                             {{ confirmText || 'Confirm' }}
                         </button>
