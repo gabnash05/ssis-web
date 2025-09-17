@@ -85,11 +85,7 @@ export function useAddStudentForm(emit: any) {
     }
 
     function handleSubmit() {
-        // ✅ only runs validation here
-        if (!validateForm()) return
-        emit('submit', { ...newStudent.value })
-        emit('update:modelValue', false)
-        resetForm()
+        return validateForm()
     }
 
     function handleIdInput(event: Event) {

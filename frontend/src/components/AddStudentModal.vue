@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 import { useAddStudentForm } from '../composables/useAddStudentForm'
 
 // Props & Emits
@@ -23,6 +24,27 @@ const {
     fetchInitialData,
 } = useAddStudentForm(emit)
 
+// Confirmation Dialog State
+const showConfirm = ref(false)
+
+function handleValidatedSubmit() {
+    const isValid = handleSubmit()
+    if (!isValid) return
+
+    showConfirm.value = true
+}
+
+function confirmSubmit() {
+    emit('submit', { ...newStudent.value })
+    emit('update:modelValue', false)
+    resetForm()
+    showConfirm.value = false
+}
+
+function cancelSubmit() {
+    showConfirm.value = false
+}
+
 // Reset form & fetch data when modal opens
 watch(
     () => props.modelValue,
@@ -40,7 +62,7 @@ watch(
         :model-value="modelValue"
         title="Add New Student"
         @update:modelValue="$emit('update:modelValue', $event)"
-        @submit="handleSubmit"
+        @submit="handleValidatedSubmit"
         @cancel="resetForm"
     >
         <p class="text-sm text-white/60 mb-4">
@@ -163,4 +185,16 @@ watch(
             </div>
         </div>
     </RecordFormModal>
+
+    <!-- Confirmation Dialog -->
+    <ConfirmDialog
+        v-model="showConfirm"
+        title="Confirm Add Student"
+        :message="'Are you sure you want to add this student?'"
+        :confirmText="'Add'"
+        :cancelText="'Cancel'"
+        @confirm="confirmSubmit"
+        @cancel="cancelSubmit"
+    >
+    </ConfirmDialog>
 </template>
