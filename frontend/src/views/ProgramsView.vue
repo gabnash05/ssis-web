@@ -3,8 +3,8 @@ import { ref, watch } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
-import AddStudentModal from '../components/AddStudentModal.vue'
-import EditStudentModal from '../components/EditStudentModal.vue'
+import AddProgramModal from '../components/AddProgramModal.vue'
+import EditProgramModal from '../components/EditProgramModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
 import type { SortOrder, Program } from '../types'
 
@@ -86,7 +86,7 @@ async function handleProgramSubmit(program: Program) {
     await fetchPrograms()
 }
 
-async function handleStudentEdit(program: Program) {
+async function handleProgramEdit(program: Program) {
     console.log('Updating program:', program)
     // 🔹 API PUT/PATCH call here
     showEditModal.value = false
@@ -152,23 +152,23 @@ async function handleProgramDelete() {
         />
 
         <!-- Add Student Modal -->
-        <AddStudentModal
+        <AddProgramModal
             v-model="showAddModal"
             @submit="handleProgramSubmit"
         />
 
         <!-- Edit Student Modal -->
-        <EditStudentModal
+        <EditProgramModal
             v-model="showEditModal"
-            :student="recordToEdit"
-            @submit="handleStudentEdit"
+            :program="recordToEdit"
+            @submit="handleProgramEdit"
         />
 
         <!-- Confirm Delete Dialog -->
         <ConfirmationDialog
             v-model="showConfirmDialog"
             title="Delete Program"
-            :message="`Are you sure you want to delete ${recordToDelete?.college_code} - ${recordToDelete?.program_name}?`"
+            :message="`Are you sure you want to delete ${recordToDelete?.program_code} - ${recordToDelete?.program_name}?`"
             confirm-text="Delete"
             confirm-variant="danger"
             @confirm="handleProgramDelete"

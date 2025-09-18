@@ -3,13 +3,14 @@ import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import { useEditStudentForm } from '../composables/useEditStudentForm.ts'
+import type { Student } from '../types.ts';
 
 // =========================
 // Props & Emits
 // =========================
 const props = defineProps<{
     modelValue: boolean
-    student: any | null // 👈 The student record to edit
+    student: Student | null // 👈 The student record to edit
 }>()
 
 const emit = defineEmits<{

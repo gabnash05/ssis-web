@@ -5,6 +5,7 @@ export async function fetchColleges() {
             { code: 'COE', name: 'College of Engineering' },
             { code: 'CAS', name: 'College of Arts and Sciences' },
             { code: 'CBA', name: 'College of Business Administration' },
+            { code: 'CCS', name: 'College of Computer Studies'},
         ]
     } catch (err) {
         console.error('Failed to fetch colleges:', err)
