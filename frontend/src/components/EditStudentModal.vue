@@ -10,7 +10,7 @@ import type { Student } from '../types.ts';
 // =========================
 const props = defineProps<{
     modelValue: boolean
-    student: Student | null // 👈 The student record to edit
+    student: Student | null
 }>()
 
 const emit = defineEmits<{

@@ -10,7 +10,7 @@ import { useAddProgramForm } from '../composables/useAddProgramForm.ts'
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
-    (e: 'submit', student: any): void
+    (e: 'submit', program: any): void
 }>()
 
 const {

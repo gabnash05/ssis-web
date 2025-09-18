@@ -19,7 +19,7 @@ export function useAddProgramForm(emit: any) {
 
     const colleges = ref<{ code: string; name: string }[]>([])
 // =========================
-// State
+// Methods
 // =========================
 
     function resetForm() {

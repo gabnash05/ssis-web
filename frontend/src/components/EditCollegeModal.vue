@@ -2,34 +2,32 @@
 import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
-import { useEditProgramForm } from '../composables/useEditProgramForm.ts'
-import type { Program } from '../types.ts';
+import { useEditCollegeForm } from '../composables/useEditCollegeForm.ts'
+import type { College } from '../types.ts';
 
 // =========================
 // Props & Emits
 // =========================
 const props = defineProps<{
     modelValue: boolean
-    program: Program | null
+    college: College | null
 }>()
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
-    (e: 'submit', program: any): void
+    (e: 'submit', college: any): void
 }>()
 
 // =========================
 // Composable State
 // =========================
 const {
-    editedProgram,
+    editedCollege,
     errors,
-    colleges,
     resetForm,
-    fetchInitialData,
-    loadProgram,
+    loadCollege,
     handleSubmit,
-} = useEditProgramForm(emit)
+} = useEditCollegeForm(emit)
 
 // =========================
 // Confirmation Dialog State and Methods
@@ -44,7 +42,7 @@ function handleValidatedSubmit() {
 }
 
 function confirmSubmit() {
-    emit('submit', { ...editedProgram.value })
+    emit('submit', { ...editedCollege.value })
     emit('update:modelValue', false)
     resetForm()
     showConfirm.value = false
@@ -55,24 +53,15 @@ function cancelSubmit() {
 }
 
 // =========================
-// Watch for Modal Open
+// Watchers
 // =========================
 watch(
-    () => props.modelValue,
-    async (isOpen) => {
-        if (isOpen && props.program) {
+    () => props.college,
+    (newCollege) => {
+        if (newCollege) {
+            loadCollege(newCollege)  // ⬅️ Populate the form
+        } else {
             resetForm()
-            await fetchInitialData()
-            loadProgram(props.program)
-        }
-    }
-)
-
-watch(
-    () => props.program,
-    (program) => {
-        if (props.modelValue && program) {
-            loadProgram(program)
         }
     },
     { immediate: true }
@@ -82,57 +71,40 @@ watch(
 <template>
     <RecordFormModal
         :model-value="modelValue"
-        title="Edit Program"
+        title="Edit College"
         @update:modelValue="$emit('update:modelValue', $event)"
         @submit="handleValidatedSubmit"
         @cancel="resetForm"
     >
         <p class="text-sm text-white/60 mb-4">
-            Edit the program's information below.
+            Edit the college's information below.
         </p>
 
         <div class="flex flex-col gap-4">
-            <!-- Program Code -->
+            <!-- College Code -->
             <div>
                 <label class="block text-xs text-white/70 mb-1">
-                    Program Code
-                    <span v-if="errors.program_code" class="text-red-400 ml-2">{{ errors.program_code }}</span>
-                </label>
-                <input
-                    v-model="editedProgram.program_code"
-                    placeholder="BSCS"
-                    class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
-                />
-            </div>
-
-            <!-- Program Name -->
-            <div>
-                <label class="block text-xs text-white/70 mb-1">
-                    Program Name
-                    <span v-if="errors.program_name" class="text-red-400 ml-2">{{ errors.program_name }}</span>
-                </label>
-                <input
-                    v-model="editedProgram.program_name"
-                    placeholder="Bachelor of Science in Computer Science"
-                    class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
-                />
-            </div>
-
-            <!-- College Dropdown -->
-            <div>
-                <label class="block text-xs text-white/70 mb-1">
-                    College
+                    College Code
                     <span v-if="errors.college_code" class="text-red-400 ml-2">{{ errors.college_code }}</span>
                 </label>
-                <select
-                    v-model="editedProgram.college_code"
+                <input
+                    v-model="editedCollege.college_code"
+                    placeholder="CCS"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
-                >
-                    <option disabled value="" class="text-white/50">Select a college</option>
-                    <option v-for="college in colleges" :key="college.code" :value="college.code">
-                        {{ college.name }}
-                    </option>
-                </select>
+                />
+            </div>
+
+            <!-- College Name -->
+            <div>
+                <label class="block text-xs text-white/70 mb-1">
+                    College Name
+                    <span v-if="errors.college_name" class="text-red-400 ml-2">{{ errors.college_name }}</span>
+                </label>
+                <input
+                    v-model="editedCollege.college_name"
+                    placeholder="College of Computer Studies"
+                    class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
+                />
             </div>
         </div>
     </RecordFormModal>
@@ -140,8 +112,8 @@ watch(
     <!-- Confirmation Dialog -->
     <ConfirmDialog
         v-model="showConfirm"
-        title="Confirm Edit Program"
-        :message="'Are you sure you want to edit this program?'"
+        title="Confirm Edit College"
+        :message="'Are you sure you want to edit this college?'"
         :confirmText="'Edit'"
         :cancelText="'Cancel'"
         :confirmVariant="'primary'"

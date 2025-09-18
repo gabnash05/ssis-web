@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import AppLayout from './components/AppLayout.vue';
 import StudentsView from './views/StudentsView.vue';
 import ProgramsView from './views/ProgramsView.vue';
+import CollegesView from './views/CollegesView.vue';
 import type { ApplicationPage } from './types';
 
 // =========================
@@ -18,6 +19,7 @@ const currentView = computed(() => {
     switch (currentPage.value) {
         case "STUDENTS": return StudentsView
         case "PROGRAMS": return ProgramsView
+        case "COLLEGES": return CollegesView
         default: return StudentsView
     }
 })

@@ -1,0 +1,100 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import RecordFormModal from './RecordFormModal.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
+import { useAddCollegeForm } from '../composables/useAddCollegeForm.ts'
+
+// =========================
+// Props & Emits
+// =========================
+const props = defineProps<{ modelValue: boolean }>()
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: boolean): void
+    (e: 'submit', college: any): void
+}>()
+
+const {
+    newCollege,
+    errors,
+    handleSubmit,
+    resetForm,
+} = useAddCollegeForm(emit)
+
+// =========================
+// Confirmation Dialog State
+// =========================
+const showConfirm = ref(false)
+
+function handleValidatedSubmit() {
+    const isValid = handleSubmit()
+    if (!isValid) return
+
+    showConfirm.value = true
+}
+
+function confirmSubmit() {
+    emit('submit', { ...newCollege.value })
+    emit('update:modelValue', false)
+    resetForm()
+    showConfirm.value = false
+}
+
+function cancelSubmit() {
+    showConfirm.value = false
+}
+</script>
+
+<template>
+    <RecordFormModal
+        :model-value="modelValue"
+        title="Add New College"
+        @update:modelValue="$emit('update:modelValue', $event)"
+        @submit="handleValidatedSubmit"
+        @cancel="resetForm"
+    >
+        <p class="text-sm text-white/60 mb-4">
+            Fill out the college's information below.
+        </p>
+
+        <div class="flex flex-col gap-4">
+            <!-- College Code -->
+            <div>
+                <label class="block text-xs text-white/70 mb-1">
+                    College Code
+                    <span v-if="errors.college_code" class="text-red-400 ml-2">{{ errors.college_code }}</span>
+                </label>
+                <input
+                    v-model="newCollege.college_code"
+                    placeholder="CCS"
+                    class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
+                />
+            </div>
+
+            <!-- College Name -->
+            <div>
+                <label class="block text-xs text-white/70 mb-1">
+                    College Name
+                    <span v-if="errors.college_name" class="text-red-400 ml-2">{{ errors.college_name }}</span>
+                </label>
+                <input
+                    v-model="newCollege.college_name"
+                    placeholder="College of Computer Studies"
+                    class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
+                />
+            </div>
+        </div>
+    </RecordFormModal>
+
+    <!-- Confirmation Dialog -->
+    <ConfirmDialog
+        v-model="showConfirm"
+        title="Confirm Add College"
+        :message="'Are you sure you want to add this college?'"
+        :confirmText="'Add'"
+        :cancelText="'Cancel'"
+        :confirmVariant="'primary'"
+        @confirm="confirmSubmit"
+        @cancel="cancelSubmit"
+    >
+    </ConfirmDialog>
+</template>
