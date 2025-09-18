@@ -4,7 +4,9 @@ import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import { useAddStudentForm } from '../composables/useAddStudentForm'
 
+// =========================
 // Props & Emits
+// =========================
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
@@ -23,7 +25,9 @@ const {
     fetchInitialData,
 } = useAddStudentForm(emit)
 
+// =========================
 // Confirmation Dialog State
+// =========================
 const showConfirm = ref(false)
 
 function handleValidatedSubmit() {
@@ -44,7 +48,9 @@ function cancelSubmit() {
     showConfirm.value = false
 }
 
-// Reset form & fetch data when modal opens
+// =========================
+// Watch for Modal Open
+// =========================
 watch(
     () => props.modelValue,
     async (isOpen) => {

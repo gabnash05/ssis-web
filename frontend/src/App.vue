@@ -2,8 +2,12 @@
 import { computed, ref } from 'vue';
 import AppLayout from './components/AppLayout.vue';
 import StudentsView from './views/StudentsView.vue';
+import ProgramsView from './views/ProgramsView.vue';
 import type { ApplicationPage } from './types';
 
+// =========================
+// Page Controls
+// =========================
 const currentPage = ref<ApplicationPage>('STUDENTS');
 
 function goToPage(page: ApplicationPage) {
@@ -13,6 +17,7 @@ function goToPage(page: ApplicationPage) {
 const currentView = computed(() => {
     switch (currentPage.value) {
         case "STUDENTS": return StudentsView
+        case "PROGRAMS": return ProgramsView
         default: return StudentsView
     }
 })
@@ -20,11 +25,30 @@ const currentView = computed(() => {
 
 <template>
     <AppLayout
-         :currentPage="currentPage"
+        :currentPage="currentPage"
         @change-page="goToPage"
     >
         <div class="p-6 w-full h-full overflow-auto">
-            <component :is="currentView" />
+            <transition name="fade-slide" mode="out-in">
+                <component :is="currentView" />
+            </transition>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fade-slide-enter-from {
+    opacity: 0;
+    transform: translateY(5px);
+}
+
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-5px);
+}
+</style>

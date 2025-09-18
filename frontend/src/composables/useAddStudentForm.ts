@@ -2,6 +2,9 @@ import { ref, watch } from 'vue'
 import { fetchColleges, fetchPrograms } from '../utils/fetchData'
 
 export function useAddStudentForm(emit: any) {
+// =========================
+// State
+// =========================
     const newStudent = ref({
         id_number: '',
         first_name: '',
@@ -26,13 +29,9 @@ export function useAddStudentForm(emit: any) {
     const filteredPrograms = ref<{ code: string; name: string }[]>([])
     const college_code = ref('')
 
-    watch(college_code, (code) => {
-        filteredPrograms.value = programs.value.filter((p) => p.college_code === code)
-
-        if (!filteredPrograms.value.some((p) => p.code === newStudent.value.program_code)) {
-            newStudent.value.program_code = ''
-        }
-    })
+// =========================
+// State
+// =========================
 
     function resetForm() {
         Object.assign(newStudent.value, {
@@ -103,6 +102,14 @@ export function useAddStudentForm(emit: any) {
 
         input.value = value
     }
+
+    watch(college_code, (code) => {
+        filteredPrograms.value = programs.value.filter((p) => p.college_code === code)
+
+        if (!filteredPrograms.value.some((p) => p.code === newStudent.value.program_code)) {
+            newStudent.value.program_code = ''
+        }
+    })
 
     return {
         newStudent,

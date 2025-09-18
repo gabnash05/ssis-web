@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+// =========================
+// Props & Emits
+// =========================
 const props = defineProps<{
     totalPages: number
     currentPage: number
@@ -13,6 +16,9 @@ const emit = defineEmits<{
     (e: 'update:pageSize', size: number): void
 }>()
 
+// =========================
+// Page State & Methods
+// =========================
 function changePage(newPage: number) {
     if (newPage < 1 || newPage > props.totalPages) return
     emit('update:page', newPage)
@@ -29,7 +35,6 @@ const pagesToShow = computed(() => {
     return pages
 })
 
-// Go to page input state
 const gotoPage = ref(props.currentPage)
 watch(() => props.currentPage, (newVal) => gotoPage.value = newVal)
 

@@ -29,6 +29,13 @@ export interface Paginated<T> {
     };
 }
 
+export interface TableColumn<T> {
+    key: keyof T
+    label: string
+    class?: string
+    sortable?: boolean
+}
+
 export interface QueryParams {
     page?: number;
     per_page?: number;

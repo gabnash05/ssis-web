@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 
+// =========================
+// Props & Emits
+// =========================
 const props = defineProps<{
     modelValue: boolean
     title?: string
@@ -16,6 +19,9 @@ const emit = defineEmits<{
     (e: 'cancel'): void
 }>()
 
+// =========================
+// Methods
+// =========================
 function close() {
     emit('update:modelValue', false)
     emit('cancel')
@@ -30,6 +36,9 @@ function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') close()
 }
 
+// =========================
+// Lifecycle
+// =========================
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
 </script>

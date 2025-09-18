@@ -4,6 +4,9 @@ import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import { useEditStudentForm } from '../composables/useEditStudentForm.ts'
 
+// =========================
+// Props & Emits
+// =========================
 const props = defineProps<{
     modelValue: boolean
     student: any | null // 👈 The student record to edit
@@ -14,6 +17,9 @@ const emit = defineEmits<{
     (e: 'submit', student: any): void
 }>()
 
+// =========================
+// Composable State
+// =========================
 const {
     editedStudent,
     errors,
@@ -28,7 +34,9 @@ const {
     loadStudent,
 } = useEditStudentForm(emit)
 
-// Confirmation Dialog State
+// =========================
+// Confirmation Dialog State and Methods
+// =========================
 const showConfirm = ref(false)
 
 function handleValidatedSubmit() {
@@ -49,6 +57,9 @@ function cancelSubmit() {
     showConfirm.value = false
 }
 
+// =========================
+// Watch for Modal Open
+// =========================
 watch(
     () => props.modelValue,
     async (isOpen) => {

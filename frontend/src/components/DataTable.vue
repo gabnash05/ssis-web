@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import type { SortOrder } from '../types'
+import type { SortOrder, TableColumn } from '../types'
 
-interface TableColumn<T> {
-    key: keyof T
-    label: string
-    class?: string
-    sortable?: boolean
-}
-
+// =========================
+// Props & Emits
+// =========================
 const props = defineProps<{
     columns: TableColumn<any>[]
     rows: any[]
@@ -23,6 +19,9 @@ const emit = defineEmits<{
     (e: 'delete', row: any): void
 }>()
 
+// =========================
+// Methods
+// =========================
 function handleHeaderClick(col: TableColumn<any>) {
     if (!col.sortable) return
 

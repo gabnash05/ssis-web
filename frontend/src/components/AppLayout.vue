@@ -2,7 +2,9 @@
 import { ref, computed } from 'vue'
 import type { ApplicationPage } from '../types'
 
-/* ------------------- Props & Emits ------------------- */
+// =========================
+// Props & Emits
+// =========================
 const props = defineProps<{
     currentPage: ApplicationPage
 }>()
@@ -11,12 +13,16 @@ const emit = defineEmits<{
     (e: 'change-page', page: ApplicationPage): void
 }>()
 
-/* ------------------- Sidebar State ------------------- */
+// =========================
+// Sidebar State
+// =========================
 const sidebarOpen = ref(false)
 const showLabels = ref(false)
 const showLogo = ref(false)
 
-/* ------------------- Tab Logic ------------------- */
+// =========================
+// Tab Logic
+// =========================
 const tabPositions = [0, 1, 2] // 0: Students, 1: Programs, 2: Colleges
 const selectedTab = computed(() => {
     switch (props.currentPage) {
@@ -38,12 +44,10 @@ function selectTab(index: number) {
 
 function toggleSidebar() {
     if (sidebarOpen.value) {
-        // CLOSE: fade out first, then collapse
         showLabels.value = false
         showLogo.value = false
         setTimeout(() => (sidebarOpen.value = false), 200)
     } else {
-        // OPEN: expand first, then fade in
         sidebarOpen.value = true
         setTimeout(() => {
             showLogo.value = true
