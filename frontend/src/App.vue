@@ -1,56 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import AppLayout from './components/AppLayout.vue';
-import StudentsView from './views/StudentsView.vue';
-import ProgramsView from './views/ProgramsView.vue';
-import CollegesView from './views/CollegesView.vue';
-import type { ApplicationPage } from './types';
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import AppLayout from './layouts/AppLayout.vue'
+import AuthLayout from './layouts/AuthLayout.vue'
 
-// =========================
-// Page Controls
-// =========================
-const currentPage = ref<ApplicationPage>('STUDENTS');
+const route = useRoute()
 
-function goToPage(page: ApplicationPage) {
-    currentPage.value = page;
-}
-
-const currentView = computed(() => {
-    switch (currentPage.value) {
-        case "STUDENTS": return StudentsView
-        case "PROGRAMS": return ProgramsView
-        case "COLLEGES": return CollegesView
-        default: return StudentsView
-    }
+const layout = computed(() => {
+    return route.meta.layout === 'auth' ? AuthLayout : AppLayout
 })
+
 </script>
 
 <template>
-    <AppLayout
-        :currentPage="currentPage"
-        @change-page="goToPage"
+    <component 
+        :is="layout"
+        :current-page="route?.name ?? 'LOGIN'"
+        @change-page="(page: string) => $router.push({ name: page })"
     >
-        <div class="p-6 w-full h-full overflow-auto">
+        <router-view v-slot="{ Component, route }">
             <transition name="fade-slide" mode="out-in">
-                <component :is="currentView" />
+                <component :is="Component" :key="route.fullPath" />
             </transition>
-        </div>
-    </AppLayout>
+        </router-view>
+    </component>
 </template>
 
 <style scoped>
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition: all 0.3s ease;
 }
-
-.fade-slide-enter-from {
-    opacity: 0;
-    transform: translateY(5px);
-}
-
+.fade-slide-enter-from,
 .fade-slide-leave-to {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(10px);
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+    opacity: 1;
+    transform: translateY(0);
 }
 </style>
