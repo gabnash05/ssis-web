@@ -24,7 +24,6 @@ const isAuthenticated = () => {
     return localStorage.getItem('token') !== null
 }
 
-// ✅ Navigation Guard
 router.beforeEach((to, _, next) => {
     if (to.meta.requiresAuth && !isAuthenticated()) {
         next('/login')
