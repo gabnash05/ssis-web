@@ -1,6 +1,6 @@
 from pathlib import Path
 from sqlalchemy import text
-from .database import get_connection, execute_sql
+from ..database import get_connection, execute_sql
 
 
 def bootstrap_schema_if_needed() -> None:

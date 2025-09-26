@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from typing import Dict, Any
-from .helpers import (
+from .controllers import (
     list_colleges, count_colleges, create_college, update_college, delete_college
 )
 
