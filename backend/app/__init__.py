@@ -1,8 +1,10 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 import os
 from .database import close_db
 
+jwt = JWTManager()
 
 def create_app() -> Flask:
     """Flask application factory."""
@@ -16,10 +18,17 @@ def create_app() -> Flask:
         DB_PASSWORD=os.environ.get("DB_PASSWORD"),
         DB_HOST=os.environ.get("DB_HOST", "localhost"),
         DB_PORT=os.environ.get("DB_PORT", "5432"),
+        JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "super-secret"),
+        JWT_TOKEN_LOCATION=["cookies"],
+        JWT_COOKIE_SECURE=False,  # True in production (HTTPS only)
+        JWT_COOKIE_HTTPONLY=True,
+        JWT_COOKIE_SAMESITE="Lax"
     )
 
     CORS(app)
     app.teardown_appcontext(close_db)
+
+    jwt.init_app(app)
 
     @app.route(app.config["API_PREFIX"] + "/health", methods=["GET"])
     def health() -> dict:

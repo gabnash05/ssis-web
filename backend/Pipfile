@@ -9,10 +9,10 @@ gunicorn = "*"
 alembic = "*"
 flask = "*"
 flask-bcrypt = "*"
-flask-jwt-extended = "*"
 python-dotenv = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 flask-cors = "*"
