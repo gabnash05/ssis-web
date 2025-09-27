@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from typing import Dict, Any
 from ..utils.route_utils import make_response
 from .services import search_programs, create_program, update_program, delete_program
@@ -7,6 +8,7 @@ bp = Blueprint("programs", __name__)
 
 
 @bp.get("/")
+@jwt_required()
 def list_programs_route():
     try:
         page = max(int(request.args.get("page", 1)), 1)
@@ -36,6 +38,7 @@ def list_programs_route():
 
 
 @bp.post("/")
+@jwt_required()
 def create_program_route():
     data: Dict[str, Any] = request.get_json(force=True) or {}
     try:
@@ -49,6 +52,7 @@ def create_program_route():
 
 
 @bp.put("/<program_code>")
+@jwt_required()
 def update_program_route(program_code: str):
     updates = request.get_json(force=True) or {}
     try:
@@ -65,6 +69,7 @@ def update_program_route(program_code: str):
 
 
 @bp.delete("/<program_code>")
+@jwt_required()
 def delete_program_route(program_code: str):
     try:
         success = delete_program(program_code)

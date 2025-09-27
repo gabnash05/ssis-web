@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from typing import Dict, Any
 from ..utils.route_utils import make_response
 from .services import search_students, create_student, get_student, update_student, delete_student
@@ -7,6 +8,7 @@ bp = Blueprint("students", __name__)
 
 
 @bp.get("/")
+@jwt_required()
 def list_students_route():
     try:
         page = max(int(request.args.get("page", 1)), 1)
@@ -36,6 +38,7 @@ def list_students_route():
 
 
 @bp.post("/")
+@jwt_required()
 def create_student_route():
     data: Dict[str, Any] = request.get_json(force=True) or {}
     try:
@@ -49,6 +52,7 @@ def create_student_route():
 
 
 @bp.get("/<id_number>")
+@jwt_required()
 def get_student_route(id_number: str):
     student = get_student(id_number)
     if not student:
@@ -57,6 +61,7 @@ def get_student_route(id_number: str):
 
 
 @bp.put("/<id_number>")
+@jwt_required()
 def update_student_route(id_number: str):
     updates = request.get_json(force=True) or {}
     try:
@@ -73,6 +78,7 @@ def update_student_route(id_number: str):
 
 
 @bp.delete("/<id_number>")
+@jwt_required()
 def delete_student_route(id_number: str):
     try:
         success = delete_student(id_number)

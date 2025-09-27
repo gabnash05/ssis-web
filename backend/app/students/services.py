@@ -7,17 +7,13 @@ from .repository import (
     update_student_record,
     delete_student_record,
 )
-import re
+from ..utils.validation_utils import _valid_id_number
 from ..database import execute_sql
 
-ID_NUMBER_RE = re.compile(r"^\d{4}-\d{4}$")
+
 ALLOWED_GENDERS = {"MALE", "FEMALE", "OTHER"}
 ALLOWED_SORT = {"id_number", "first_name", "last_name", "year_level", "gender", "program_code"}
 ALLOWED_SEARCH = {"id_number", "first_name", "last_name", "year_level", "gender", "program_code"}
-
-
-def _valid_id_number(id_number: str) -> bool:
-    return bool(ID_NUMBER_RE.match(id_number))
 
 
 def search_students(

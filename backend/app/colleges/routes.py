@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from typing import Dict, Any
 from ..utils.route_utils import make_response
 from .services import (
@@ -13,6 +14,7 @@ bp = Blueprint("colleges", __name__)
 
 
 @bp.get("/")
+@jwt_required()
 def list_colleges():
     try:
         try:
@@ -52,6 +54,7 @@ def list_colleges():
 
 
 @bp.post("/")
+@jwt_required()
 def create_college_route():
     data: Dict[str, Any] = request.get_json(force=True) or {}
     try:
@@ -66,6 +69,7 @@ def create_college_route():
 
 
 @bp.put("/<college_code>")
+@jwt_required()
 def update_college_route(college_code: str):
     updates = request.get_json(force=True) or {}
     try:
@@ -84,6 +88,7 @@ def update_college_route(college_code: str):
 
 
 @bp.delete("/<college_code>")
+@jwt_required()
 def delete_college_route(college_code: str):
     try:
         success = delete_college(college_code)
