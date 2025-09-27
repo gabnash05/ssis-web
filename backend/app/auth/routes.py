@@ -16,18 +16,19 @@ bp = Blueprint("auth", __name__)
 def signup():
     try:
         data = request.get_json(force=True)
+        username = data.get("username")
         email = data.get("email")
         password = data.get("password")
         role = data.get("role")
 
-        if not email or not password:
+        if not username or not email or not password:
             return make_response({"status": "error", "error": "missing_fields"}, 400)
 
-        success = create_user(email, password, role)
+        success = create_user(username, email, password, role)
         if not success:
             return make_response({"status": "error", "error": "create_failed"}, 500)
 
-        return make_response({"status": "success", "data": {"email": email}}, 201)
+        return make_response({"status": "success", "data": {"username": username, "email": email}}, 201)
 
     except Exception as e:
         return make_response({"status": "error", "error": str(e)}, 500)
@@ -47,7 +48,7 @@ def login():
         if not user:
             return make_response({"status": "error", "error": "invalid_credentials"}, 401)
 
-        access_token = create_access_token(identity=user)
+        access_token = create_access_token(identity=str(user["user_id"]))
 
         resp = make_response({"status": "success", "data": user}, 200)
         set_access_cookies(resp, access_token)

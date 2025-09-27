@@ -1,5 +1,5 @@
 from app import create_app
-from app.utils import bootstrap_schema_if_needed
+from app.db.bootstrap import bootstrap_schema_if_needed
 
 app = create_app()
 

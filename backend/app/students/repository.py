@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 from sqlalchemy import text
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 
 def fetch_students(
@@ -24,17 +24,17 @@ def fetch_students(
             )
         params["q"] = f"%{search_term}%"
 
-    query = text(
-        f"""
+    query = f"""
         SELECT id_number, first_name, last_name, year_level, gender, program_code
         FROM students
         {filters}
         ORDER BY {sort_by} {sort_order}
         LIMIT :limit OFFSET :offset
         """
-    )
     result = execute_sql(query, params)
-    return result.mappings().all() if result else []
+    if result:
+        return [dict(row) for row in result.mappings().all()]
+    return []
 
 
 def fetch_student_count(search_by: str, search_term: str) -> int:
@@ -51,9 +51,14 @@ def fetch_student_count(search_by: str, search_term: str) -> int:
             )
         params["q"] = f"%{search_term}%"
 
-    query = text(f"SELECT COUNT(*) FROM students {filters}")
+    query = f"SELECT COUNT(*) FROM students {filters}"
     result = execute_sql(query, params)
-    return int(result.scalar()) if result and result.scalar() is not None else 0
+
+    if not result:
+        return 0
+
+    value = result.scalar() 
+    return int(value) if value is not None else 0
 
 
 def insert_student(data: Dict[str, Any]) -> bool:

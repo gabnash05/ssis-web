@@ -1,10 +1,10 @@
 from typing import Dict, Any, List
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 
 from typing import List, Dict, Any
 from sqlalchemy import text
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 
 def fetch_colleges(
@@ -25,18 +25,18 @@ def fetch_colleges(
             filters = "WHERE college_code ILIKE :q OR college_name ILIKE :q"
         params["q"] = f"%{search_term}%"
 
-    query = text(
-        f"""
-        SELECT college_code, college_name
-        FROM colleges
-        {filters}
-        ORDER BY {sort_by} {sort_order}
-        LIMIT :limit OFFSET :offset
-        """
-    )
+    query = f"""
+            SELECT college_code, college_name
+            FROM colleges
+            {filters}
+            ORDER BY {sort_by} {sort_order}
+            LIMIT :limit OFFSET :offset
+            """
 
     result = execute_sql(query, params)
-    return result.mappings().all() if result else []
+    if result:
+        return [dict(row) for row in result.mappings().all()]
+    return []
 
 
 def fetch_college_count(search_by: str, search_term: str) -> int:
@@ -50,9 +50,14 @@ def fetch_college_count(search_by: str, search_term: str) -> int:
             filters = "WHERE college_code ILIKE :q OR college_name ILIKE :q"
         params["q"] = f"%{search_term}%"
 
-    query = text(f"SELECT COUNT(*) FROM colleges {filters}")
+    query = f"SELECT COUNT(*) FROM colleges {filters}"
     result = execute_sql(query, params)
-    return int(result.scalar()) if result and result.scalar() is not None else 0
+
+    if not result:
+        return 0
+
+    value = result.scalar()
+    return int(value) if value is not None else 0
 
 
 

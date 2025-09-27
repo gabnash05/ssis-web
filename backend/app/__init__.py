@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import os
-from .database import close_db
+from .db.database import close_db
 
 jwt = JWTManager()
 

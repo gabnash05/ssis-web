@@ -6,7 +6,7 @@ from .repository import (
     update_program_record,
     delete_program_record,
 )
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 ALLOWED_SORT = {"program_code", "program_name", "college_code"}
 ALLOWED_SEARCH = {"program_code", "program_name", "college_code"}

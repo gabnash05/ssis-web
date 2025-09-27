@@ -44,19 +44,26 @@ def close_db(_: Optional[BaseException] = None) -> None:
         engine.dispose()
 
 
-def execute_sql(sql: str, params: Optional[dict] = None) -> Optional[Result]:
+def execute_sql(sql, params: Optional[dict] = None) -> Optional[Result]:
     """
-    Execute raw SQL with optional parameters.
+    Execute raw SQL (string or SQLAlchemy TextClause) with optional parameters.
     Commits automatically for modifying queries.
     """
     try:
         conn = get_connection()
-        result = conn.execute(text(sql), params or {})
 
-        if sql.strip().lower().startswith(("insert", "update", "delete", "create", "drop", "alter")):
+        if isinstance(sql, str):
+            sql = text(sql)
+
+        result = conn.execute(sql, params or {})
+
+        if sql.text.strip().lower().startswith((
+            "insert", "update", "delete", "create", "drop", "alter"
+        )):
             conn.commit()
 
         return result
     except SQLAlchemyError as e:
         current_app.logger.error(f"SQL execution failed: {e}")
         return None
+

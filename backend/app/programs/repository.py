@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from sqlalchemy import text
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 
 def fetch_programs(
@@ -21,17 +21,18 @@ def fetch_programs(
             filters = "WHERE program_code ILIKE :q OR program_name ILIKE :q OR college_code ILIKE :q"
         params["q"] = f"%{search_term}%"
 
-    query = text(
-        f"""
+    query = f"""
         SELECT program_code, program_name, college_code
         FROM programs
         {filters}
         ORDER BY {sort_by} {sort_order}
         LIMIT :limit OFFSET :offset
         """
-    )
+
     result = execute_sql(query, params)
-    return result.mappings().all() if result else []
+    if result:
+        return [dict(row) for row in result.mappings().all()]
+    return []
 
 
 def fetch_program_count(search_by: str, search_term: str) -> int:
@@ -45,9 +46,14 @@ def fetch_program_count(search_by: str, search_term: str) -> int:
             filters = "WHERE program_code ILIKE :q OR program_name ILIKE :q OR college_code ILIKE :q"
         params["q"] = f"%{search_term}%"
 
-    query = text(f"SELECT COUNT(*) FROM programs {filters}")
+    query = f"SELECT COUNT(*) FROM programs {filters}"
     result = execute_sql(query, params)
-    return int(result.scalar()) if result and result.scalar() is not None else 0
+
+    if not result:
+        return 0
+
+    value = result.scalar()
+    return int(value) if value is not None else 0
 
 
 def insert_program(program_code: str, program_name: str, college_code: str) -> bool:

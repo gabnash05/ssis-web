@@ -8,7 +8,7 @@ from .repository import (
     delete_student_record,
 )
 from ..utils.validation_utils import _valid_id_number
-from ..database import execute_sql
+from ..db.database import execute_sql
 
 
 ALLOWED_GENDERS = {"MALE", "FEMALE", "OTHER"}
