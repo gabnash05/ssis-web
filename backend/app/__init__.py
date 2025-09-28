@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -22,7 +23,9 @@ def create_app() -> Flask:
         JWT_TOKEN_LOCATION=["cookies"],
         JWT_COOKIE_SECURE=False,  # True in production (HTTPS only)
         JWT_COOKIE_HTTPONLY=True,
-        JWT_COOKIE_SAMESITE="Lax"
+        JWT_COOKIE_SAMESITE="Lax",
+        JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES_HOURS", 1))),
+        JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 10))),
     )
 
     CORS(app)
