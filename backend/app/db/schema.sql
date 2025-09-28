@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS colleges (
 CREATE TABLE IF NOT EXISTS programs (
     program_code VARCHAR(20) PRIMARY KEY,
     program_name VARCHAR(50) NOT NULL,
-    college_code VARCHAR(20) REFERENCES colleges(college_code) ON DELETE CASCADE
+    college_code VARCHAR(20) REFERENCES colleges(college_code) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS students (
@@ -23,5 +23,5 @@ CREATE TABLE IF NOT EXISTS students (
     last_name VARCHAR(50) NOT NULL,
     year_level INT CHECK (year_level BETWEEN 1 AND 5),
     gender VARCHAR(10) CHECK (gender IN ('MALE','FEMALE','OTHER')),
-    program_code VARCHAR(20) REFERENCES programs(program_code) ON DELETE SET NULL
+    program_code VARCHAR(20) REFERENCES programs(program_code) ON DELETE SET NULL ON UPDATE CASCADE
 );
