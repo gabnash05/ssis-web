@@ -37,17 +37,11 @@ def list_colleges():
             page_size=page_size,
         )
 
-        payload = {
+        return make_response({
             "status": "success",
             "data": results,
-            "pagination": {
-                "total_count": total_count,
-                "current_page": page,
-                "page_size": page_size,
-                "total_pages": (total_count + page_size - 1) // page_size,
-            },
-        }
-        return make_response(payload, 200)
+            "meta": {"page": page, "per_page": page_size, "total": total_count},
+        })
 
     except Exception as e:
         return make_response({"status": "error", "error": str(e)}, 500)

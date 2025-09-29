@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS students (
     gender VARCHAR(10) CHECK (gender IN ('MALE','FEMALE','OTHER')),
     program_code VARCHAR(20) REFERENCES programs(program_code) ON DELETE SET NULL ON UPDATE CASCADE
 );
+  
