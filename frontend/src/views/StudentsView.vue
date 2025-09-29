@@ -6,6 +6,9 @@ import PaginationControls from '../components/PaginationControls.vue'
 import AddStudentModal from '../components/AddStudentModal.vue'
 import EditStudentModal from '../components/EditStudentModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
+
+import { createStudent, deleteStudent, listStudents, updateStudent } from '../api/students'
+
 import type { SortOrder, Student } from '../types'
 
 // =========================
@@ -42,30 +45,23 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<Student | null>(null)
 
 // =========================
-// Fetch Students (Mock)
+// Fetch Students
 // =========================
 async function fetchStudents() {
-    console.log(
-        `Fetching students ${searchTerm.value} search by ${searchBy.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`
-    )
-    students.value = [
-        {
-            id_number: '2025-0001',
-            first_name: 'Alice',
-            last_name: 'Reyes',
-            year_level: 1,
-            gender: 'FEMALE',
-            program_code: 'BSCS',
-        },
-        {
-            id_number: '2025-0002',
-            first_name: 'John',
-            last_name: 'Doe',
-            year_level: 1,
-            gender: 'MALE',
-            program_code: 'BSIT',
-        },
-    ]
+    try {
+        const res = await listStudents({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        });
+
+        students.value = res.data;
+    } catch (err) {
+        console.error("Failed to fetch students:", err);
+    }
 }
 
 fetchStudents()
@@ -89,26 +85,37 @@ async function handleDelete(student: Student) {
 }
 
 async function handleStudentSubmit(student: Student) {
-    console.log('Submitting new student:', student)
-    // 🔹 API POST call here
-    showAddModal.value = false
-    await fetchStudents()
+    try {
+        await createStudent(student);
+        showAddModal.value = false;
+        await fetchStudents();
+    } catch (err) {
+        console.error("Error creating student:", err);
+    }
 }
 
 async function handleStudentEdit(student: Student) {
-    console.log('Updating student:', student)
-    // 🔹 API PUT/PATCH call here
-    showEditModal.value = false
-    recordToEdit.value = null
-    await fetchStudents()
+    if (!recordToEdit.value) return;
+    try {
+        await updateStudent(recordToEdit.value.id_number, student);
+        showEditModal.value = false;
+        recordToEdit.value = null;
+        await fetchStudents();
+    } catch (err) {
+        console.error("Error updating student:", err);
+    }
 }
 
 async function handleStudentDelete() {
-    if (!recordToDelete.value) return
-    console.log('Deleting student:', recordToDelete.value)
-    // 🔹 API DELETE call here
-    await fetchStudents()
-    recordToDelete.value = null
+    if (!recordToDelete.value) return;
+    try {
+        await deleteStudent(recordToDelete.value.id_number);
+        await fetchStudents();
+        recordToDelete.value = null;
+        showConfirmDialog.value = false;
+    } catch (err) {
+        console.error("Error deleting student:", err);
+    }
 }
 </script>
 

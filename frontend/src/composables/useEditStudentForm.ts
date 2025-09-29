@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
-import { fetchColleges, fetchPrograms } from '../utils/fetchData'
+import { listColleges } from '../api/colleges'
+import { listPrograms } from '../api/programs'
 
 export function useEditStudentForm(emit: any) {
 // =========================
@@ -54,8 +55,18 @@ export function useEditStudentForm(emit: any) {
     }
 
     async function fetchInitialData() {
-        colleges.value = await fetchColleges()
-        programs.value = await fetchPrograms()
+        const collegesRes = await listColleges({})
+        colleges.value = collegesRes.data.map(c => ({
+            code: c.college_code,
+            name: c.college_name,
+        }))
+
+        const programsRes = await listPrograms({})
+        programs.value = programsRes.data.map(p => ({
+            code: p.program_code,
+            name: p.program_name,
+            college_code: p.college_code,
+        }))
     }
 
     function loadStudent(student: any) {

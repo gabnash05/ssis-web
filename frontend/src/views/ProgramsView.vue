@@ -6,6 +6,9 @@ import PaginationControls from '../components/PaginationControls.vue'
 import AddProgramModal from '../components/AddProgramModal.vue'
 import EditProgramModal from '../components/EditProgramModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
+
+import { listPrograms, createProgram, updateProgram, deleteProgram } from '../api/programs'
+
 import type { SortOrder, Program } from '../types'
 
 // =========================
@@ -39,24 +42,23 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<Program | null>(null)
 
 // =========================
-// Fetch Programs (Mock)
+// Fetch Programs
 // =========================
 async function fetchPrograms() {
-    console.log(
-        `Fetching programs ${searchTerm.value} search by ${searchBy.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`
-    )
-    programs.value = [
-        {
-            program_code: 'BSCS',
-            program_name: 'Bachelor of Science in Computer Science',
-            college_code: 'CCS',
-        },
-        {
-            program_code: 'BSCE',
-            program_name: 'Bachelor of Science in Civil Engineering',
-            college_code: 'COE',
-        },
-    ]
+    try {
+        const res = await listPrograms({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        })
+
+        programs.value = res.data
+    } catch (err) {
+        console.error("Failed to fetch programs:", err)
+    }
 }
 
 fetchPrograms()
@@ -80,26 +82,37 @@ async function handleDelete(program: Program) {
 }
 
 async function handleProgramSubmit(program: Program) {
-    console.log('Submitting new program:', program)
-    // 🔹 API POST call here
-    showAddModal.value = false
-    await fetchPrograms()
+    try {
+        await createProgram(program)
+        showAddModal.value = false
+        await fetchPrograms()
+    } catch (err) {
+        console.error("Error creating program:", err)
+    }
 }
 
 async function handleProgramEdit(program: Program) {
-    console.log('Updating program:', program)
-    // 🔹 API PUT/PATCH call here
-    showEditModal.value = false
-    recordToEdit.value = null
-    await fetchPrograms()
+    if (!recordToEdit.value) return
+    try {
+        await updateProgram(recordToEdit.value.program_code, program)
+        showEditModal.value = false
+        recordToEdit.value = null
+        await fetchPrograms()
+    } catch (err) {
+        console.error("Error updating program:", err)
+    }
 }
 
 async function handleProgramDelete() {
     if (!recordToDelete.value) return
-    console.log('Deleting program:', recordToDelete.value)
-    // 🔹 API DELETE call here
-    await fetchPrograms()
-    recordToDelete.value = null
+    try {
+        await deleteProgram(recordToDelete.value.program_code)
+        await fetchPrograms()
+        recordToDelete.value = null
+        showConfirmDialog.value = false
+    } catch (err) {
+        console.error("Error deleting program:", err)
+    }
 }
 </script>
 

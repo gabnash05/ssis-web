@@ -20,14 +20,14 @@ export const router = createRouter({
     routes
 })
 
-const isAuthenticated = () => {
-    return localStorage.getItem('token') !== null
-}
+// const isAuthenticated = () => {
+//     return localStorage.getItem('token') !== null
+// }
 
-router.beforeEach((to, _, next) => {
-    if (to.meta.requiresAuth && !isAuthenticated()) {
-        next('/login')
-    } else {
-        next()
-    }
-})
+// router.beforeEach((to, _, next) => {
+//     if (to.meta.requiresAuth && !isAuthenticated()) {
+//         next('/login')
+//     } else {
+//         next()
+//     }
+// })

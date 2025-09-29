@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
 import AddCollegeModal from '../components/AddCollegeModal.vue'
 import EditCollegeModal from '../components/EditCollegeModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
+
+import { listColleges, createCollege, updateCollege, deleteCollege } from '../api/colleges'
+
 import type { SortOrder, College } from '../types'
 
 // =========================
@@ -41,19 +45,20 @@ const recordToDelete = ref<College | null>(null)
 // Fetch Programs (Mock)
 // =========================
 async function fetchColleges() {
-    console.log(
-        `Fetching colleges ${searchTerm.value} search by ${searchBy.value} sorted by ${sortBy.value} ${sortOrder.value} page ${currentPage.value} size ${pageSize.value}`
-    )
-    colleges.value = [
-        {
-            college_code: 'CCS',
-            college_name: 'College of Computer Studies',
-        },
-        {
-            college_code: 'COE',
-            college_name: 'College of Engineering',
-        },
-    ]
+    try {
+        const res = await listColleges({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        })
+
+        colleges.value = res.data
+    } catch (err) {
+        console.error("Failed to fetch colleges:", err)
+    }
 }
 
 fetchColleges()
@@ -77,26 +82,38 @@ async function handleDelete(college: College) {
 }
 
 async function handleCollegeSubmit(college: College) {
-    console.log('Submitting new college:', college)
-    // 🔹 API POST call here
-    showAddModal.value = false
-    await fetchColleges()
+    try {
+        await createCollege(college)
+        showAddModal.value = false
+        await fetchColleges()
+    } catch (err) {
+        console.error("Error creating college:", err)
+    }
 }
 
 async function handleCollegeEdit(college: College) {
-    console.log('Updating college:', college)
-    // 🔹 API PUT/PATCH call here
-    showEditModal.value = false
-    recordToEdit.value = null
-    await fetchColleges()
+    if (!recordToEdit.value) return
+    
+    try {
+        await updateCollege(recordToEdit.value.college_code, college)
+        showEditModal.value = false
+        recordToEdit.value = null
+        await fetchColleges()
+    } catch (err) {
+        console.error("Error updating college:", err)
+    }
 }
 
 async function handleCollegeDelete() {
     if (!recordToDelete.value) return
-    console.log('Deleting college:', recordToDelete.value)
-    // 🔹 API DELETE call here
-    await fetchColleges()
-    recordToDelete.value = null
+    try {
+        await deleteCollege(recordToDelete.value.college_code)
+        await fetchColleges()
+        recordToDelete.value = null
+        showConfirmDialog.value = false
+    } catch (err) {
+        console.error("Error deleting college:", err)
+    }
 }
 </script>
 

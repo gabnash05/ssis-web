@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { fetchColleges } from '../utils/fetchData'
+import { listColleges } from '../api/colleges'
 import type { Program } from '../types'
 
 export function useEditProgramForm(emit: any) {
@@ -40,7 +40,11 @@ export function useEditProgramForm(emit: any) {
     }
 
     async function fetchInitialData() {
-        colleges.value = await fetchColleges()
+        const res = await listColleges({})
+        colleges.value = res.data.map(c => ({
+            code: c.college_code,
+            name: c.college_name,
+        }))
     }
 
     function loadProgram(program: Program) {

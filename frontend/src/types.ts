@@ -19,9 +19,16 @@ export interface College {
     college_name: string;   //e.g., "College of Engineering"
 }
 
+export interface User {
+    user_id: number;
+    username: string;
+    email: string;
+    role: string;           // Could be "admin" | "staff" | "student" if strict enum
+}
+
 // Auxiliary Types
 export interface Paginated<T> {
-    items: T[];
+    data: T[];
     meta: {
         page: number;
         per_page: number;
@@ -38,11 +45,13 @@ export interface TableColumn<T> {
 
 export interface QueryParams {
     page?: number;
-    per_page?: number;
-    sort_by?: keyof Student | keyof Program | keyof College;
+    page_size?: number;  // updated to match backend
+    sort_by?: keyof Student | keyof Program | keyof College | keyof User;
     sort_order?: SortOrder;
-    filter?: Partial<Record<keyof Student | keyof Program | keyof College, string | number>>;
-    query?: string;
+    filter?: Partial<
+        Record<keyof Student | keyof Program | keyof College | keyof User, string | number>
+    >;
+    q?: string;
 }
 
 // Utility Types
