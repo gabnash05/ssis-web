@@ -10,31 +10,35 @@ bp = Blueprint("students", __name__)
 @bp.get("/")
 @jwt_required()
 def list_students_route():
-    try:
-        page = max(int(request.args.get("page", 1)), 1)
-        page_size = max(min(int(request.args.get("page_size", 50)), 100), 1)
-    except ValueError:
-        return make_response({"status": "error", "error": "invalid_pagination"}, 400)
+    try: 
+        try:
+            page = max(int(request.args.get("page", 1)), 1)
+            page_size = max(min(int(request.args.get("page_size", 50)), 100), 1)
+        except ValueError:
+            return make_response({"status": "error", "error": "invalid_pagination"}, 400)
 
-    sort_by = request.args.get("sort_by", "id_number")
-    sort_order = request.args.get("order", "ASC").upper()
-    search_term = request.args.get("q", "")
-    search_by = request.args.get("search_by", "")
+        sort_by = request.args.get("sort_by", "id_number")
+        sort_order = request.args.get("order", "ASC").upper()
+        search_term = request.args.get("q", "")
+        search_by = request.args.get("search_by", "")
 
-    results, total_count = search_students(
-        sort_by=sort_by,
-        sort_order=sort_order,
-        search_term=search_term,
-        search_by=search_by,
-        page=page,
-        page_size=page_size,
-    )
+        results, total_count = search_students(
+            sort_by=sort_by,
+            sort_order=sort_order,
+            search_term=search_term,
+            search_by=search_by,
+            page=page,
+            page_size=page_size,
+        )
 
-    return make_response({
-        "status": "success",
-        "data": results,
-        "meta": {"page": page, "per_page": page_size, "total": total_count},
-    })
+        return make_response({
+            "status": "success",
+            "data": results,
+            "meta": {"page": page, "per_page": page_size, "total": total_count},
+        })
+    
+    except Exception as e:
+        return make_response({"status": "error", "error": str(e)}, 500)
 
 
 @bp.post("/")

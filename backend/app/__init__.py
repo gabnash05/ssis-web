@@ -28,9 +28,22 @@ def create_app() -> Flask:
         JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 10))),
     )
 
-    CORS(app)
-    app.teardown_appcontext(close_db)
+    # CORS configuration
+    # origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173")
+    # origins = origins.split(",")
 
+    origins = ["http://localhost:5173"]
+    CORS(app, 
+         supports_credentials=True, 
+         origins=origins,
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
+         allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"]
+    )
+    
+    
+    app.teardown_appcontext(close_db)
+    app.url_map.strict_slashes = False
+    
     jwt.init_app(app)
 
     @app.route(app.config["API_PREFIX"] + "/health", methods=["GET"])

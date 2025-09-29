@@ -3,26 +3,27 @@ import { ref } from 'vue'
 import AuthFormWrapper from '../../components/auth/AuthFormWrapper.vue'
 import AuthInput from '../../components/auth/AuthInput.vue'
 import AuthButton from '../../components/auth/AuthButton.vue'
+import { signup } from '../../api/auth'
+import { checkAuth } from '../../composables/useAuth'
+import { router } from '../../router'
 
-const name = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
 // ✅ Store error messages per field
 const errors = ref({
-    name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
 })
 
-function handleSignup() {
-    // Reset errors first
-    errors.value = { name: '', email: '', password: '', confirmPassword: '' }
+async function handleSignup() {
+    errors.value = { username: '', email: '', password: '', confirmPassword: '' }
 
-    // Basic validation
-    if (!name.value) errors.value.name = 'Name is required'
+    if (!username.value) errors.value.username = 'Name is required'
     if (!email.value) errors.value.email = 'Email is required'
     if (!password.value) errors.value.password = 'Password is required'
     if (!confirmPassword.value) {
@@ -31,11 +32,15 @@ function handleSignup() {
         errors.value.confirmPassword = 'Passwords do not match'
     }
 
-    // Stop if there are errors
     if (Object.values(errors.value).some(e => e)) return
 
-    console.log('Signing up:', name.value, email.value, password.value)
-    // ✅ Call API here
+    try {
+        await signup(username.value, email.value, password.value);
+        await checkAuth()
+        router.push({ name: "STUDENTS" })
+    } catch (err) {
+        console.error("Login failed:", err);
+    }
 }
 </script>
 
@@ -48,11 +53,11 @@ function handleSignup() {
     >
         <form @submit.prevent="handleSignup" class="flex flex-col gap-4">
             <AuthInput
-                v-model="name"
-                label="Name"
+                v-model="username"
+                label="Username"
                 type="text"
                 placeholder="Enter your full name"
-                :error="errors.name"
+                :error="errors.username"
             />
             <AuthInput
                 v-model="email"

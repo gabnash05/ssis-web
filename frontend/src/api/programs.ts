@@ -1,7 +1,7 @@
 import { apiClient } from "./index";
 import type { Program, Paginated } from "../types";
 
-export async function listPrograms(params: Record<string, any>) {
+export async function listPrograms(params: Record<string, any>): Promise<Paginated<Program>> {
     const { data } = await apiClient.get("/programs", { params });
     return data as Paginated<Program>;
 }

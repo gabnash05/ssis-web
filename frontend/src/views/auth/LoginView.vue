@@ -4,6 +4,10 @@ import AuthFormWrapper from '../../components/auth/AuthFormWrapper.vue'
 import AuthInput from '../../components/auth/AuthInput.vue'
 import AuthButton from '../../components/auth/AuthButton.vue'
 
+import { login } from '../../api/auth'
+import { checkAuth } from '../../composables/useAuth'
+import { router } from '../../router'
+
 const email = ref('')
 const password = ref('')
 
@@ -13,20 +17,22 @@ const errors = ref({
     password: ''
 })
 
-function handleLogin() {
-    // Reset errors first
+async function handleLogin() {
     errors.value.email = ''
     errors.value.password = ''
 
-    // Basic validation
     if (!email.value) errors.value.email = 'Email is required'
     if (!password.value) errors.value.password = 'Password is required'
 
-    // Stop if there are errors
     if (errors.value.email || errors.value.password) return
 
-    console.log('Logging in:', email.value, password.value)
-    // ✅ Call API here
+    try {
+        await login(email.value, password.value);
+        await checkAuth()
+        router.push({ name: "STUDENTS" })
+    } catch (err) {
+        console.error("Login failed:", err);
+    }
 }
 </script>
 

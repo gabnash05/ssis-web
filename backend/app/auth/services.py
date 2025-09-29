@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .repository import insert_user, find_user_by_email, find_user_by_username
 
 
-def create_user(username: str, email: str, password: str, role: Optional[str] = None) -> bool:
+def create_user(username: str, email: str, password: str, role: Optional[str] = None) -> Optional[int]:
     password_hash = generate_password_hash(password)
     return insert_user(username, email, password_hash, role)
 

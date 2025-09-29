@@ -42,7 +42,7 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<College | null>(null)
 
 // =========================
-// Fetch Programs (Mock)
+// Fetch Programs
 // =========================
 async function fetchColleges() {
     try {
@@ -93,7 +93,6 @@ async function handleCollegeSubmit(college: College) {
 
 async function handleCollegeEdit(college: College) {
     if (!recordToEdit.value) return
-    
     try {
         await updateCollege(recordToEdit.value.college_code, college)
         showEditModal.value = false

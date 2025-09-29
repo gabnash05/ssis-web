@@ -24,11 +24,23 @@ def signup():
         if not username or not email or not password:
             return make_response({"status": "error", "error": "missing_fields"}, 400)
 
-        success = create_user(username, email, password, role)
-        if not success:
+        user_id = create_user(username, email, password, role)
+        if not user_id:
             return make_response({"status": "error", "error": "create_failed"}, 500)
+        
+        access_token = create_access_token(identity=str(user_id))
 
-        return make_response({"status": "success", "data": {"username": username, "email": email}}, 201)
+        resp = make_response({
+            "status": "success",
+            "data": {
+                "user_id": user_id,
+                "username": username,
+                "email": email
+            }
+        }, 201)
+
+        set_access_cookies(resp, access_token)
+        return resp
 
     except Exception as e:
         return make_response({"status": "error", "error": str(e)}, 500)

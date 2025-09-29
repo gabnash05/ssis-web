@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 from ..db.database import execute_sql
 
 
-def insert_user(username: str, email: str, password_hash: str, role: Optional[str]) -> bool:
+def insert_user(username: str, email: str, password_hash: str, role: Optional[str]) -> Optional[int]:
     result = execute_sql(
         """
         INSERT INTO users (username, email, password_hash, role)
@@ -10,7 +10,9 @@ def insert_user(username: str, email: str, password_hash: str, role: Optional[st
         """,
         {"username": username, "email": email, "password_hash": password_hash, "role": role},
     )
-    return result is not None
+    
+    row = result.mappings().first() if result else None
+    return row["user_id"] if row else None
 
 
 def find_user_by_email(email: str) -> Optional[Dict[str, Any]]:
