@@ -2,7 +2,15 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 from typing import Dict, Any
 from ..utils.route_utils import make_response
-from .services import search_programs, create_program, update_program, delete_program
+from .services import (
+    search_programs,
+    get_program,
+    get_programs_by_college,
+    get_all_programs,
+    create_program,
+    update_program,
+    delete_program
+)
 
 bp = Blueprint("programs", __name__)
 
@@ -15,14 +23,18 @@ def list_programs_route():
             page = max(int(request.args.get("page", 1)), 1)
             page_size = max(min(int(request.args.get("page_size", 50)), 100), 1)
         except ValueError:
-            return make_response({"status": "error", "error": "invalid_pagination"}, 400)
+            return make_response({
+                "status": "error", 
+                "message": "Invalid pagination parameters",
+                "error_code": "INVALID_PAGINATION"
+            }, 400)
 
         sort_by = request.args.get("sort_by", "program_code")
         sort_order = request.args.get("order", "ASC").upper()
         search_term = request.args.get("q", "")
         search_by = request.args.get("search_by", "")
 
-        results, total_count = search_programs(
+        result = search_programs(
             sort_by=sort_by,
             sort_order=sort_order,
             search_term=search_term,
@@ -31,14 +43,30 @@ def list_programs_route():
             page_size=page_size,
         )
 
-        return make_response({
-            "status": "success",
-            "data": results,
-            "meta": {"page": page, "per_page": page_size, "total": total_count},
-        })
+        if result["success"]:
+            return make_response({
+                "status": "success",
+                "message": result["message"],
+                "data": result["data"],
+                "meta": {
+                    "page": result["page"], 
+                    "per_page": result["page_size"], 
+                    "total": result["total_count"]
+                },
+            }, 200)
+        else:
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"]
+            }, 500)
 
     except Exception as e:
-        return make_response({"status": "error", "error": str(e)}, 500)
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
 
 
 @bp.post("/")
@@ -46,13 +74,36 @@ def list_programs_route():
 def create_program_route():
     data: Dict[str, Any] = request.get_json(force=True) or {}
     try:
-        create_program(data)
-    except ValueError as e:
-        return make_response({"status": "error", "error": str(e)}, 400)
-    except Exception:
-        return make_response({"status": "error", "error": "create_failed"}, 500)
-
-    return make_response({"status": "success", "data": {"program_code": data["program_code"]}}, 201)
+        result = create_program(data)
+        
+        if result["success"]:
+            return make_response({
+                "status": "success",
+                "message": result["message"],
+                "data": result["data"]
+            }, 201)
+        else:
+            status_code = 400
+            if result["error_code"] == "PROGRAM_CODE_EXISTS":
+                status_code = 409  # Conflict
+            elif result["error_code"] == "COLLEGE_NOT_FOUND":
+                status_code = 400
+            elif result["error_code"] == "DATABASE_ERROR":
+                status_code = 500
+            
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"],
+                "details": result.get("details", {})
+            }, status_code)
+            
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
 
 
 @bp.put("/<program_code>")
@@ -60,27 +111,70 @@ def create_program_route():
 def update_program_route(program_code: str):
     updates = request.get_json(force=True) or {}
     try:
-        success = update_program(program_code, updates)
-    except ValueError as e:
-        return make_response({"status": "error", "error": str(e)}, 400)
-    except Exception:
-        return make_response({"status": "error", "error": "update_failed"}, 500)
-
-    if not success:
-        return make_response({"status": "error", "error": "not_found_or_no_changes"}, 404)
-
-    return make_response({"status": "success", "data": {"program_code": program_code}})
+        result = update_program(program_code, updates)
+        
+        if result["success"]:
+            return make_response({
+                "status": "success",
+                "message": result["message"],
+                "data": result["data"]
+            }, 200)
+        else:
+            status_code = 400
+            if result["error_code"] == "PROGRAM_NOT_FOUND":
+                status_code = 404
+            elif result["error_code"] == "PROGRAM_CODE_EXISTS":
+                status_code = 409  # Conflict
+            elif result["error_code"] == "COLLEGE_NOT_FOUND":
+                status_code = 400
+            elif result["error_code"] == "DATABASE_ERROR":
+                status_code = 500
+            
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"],
+                "details": result.get("details", {})
+            }, status_code)
+            
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
 
 
 @bp.delete("/<program_code>")
 @jwt_required()
 def delete_program_route(program_code: str):
     try:
-        success = delete_program(program_code)
-    except Exception:
-        return make_response({"status": "error", "error": "delete_failed"}, 500)
-
-    if not success:
-        return make_response({"status": "error", "error": "not_found"}, 404)
-
-    return make_response({"status": "success", "data": {"program_code": program_code}})
+        result = delete_program(program_code)
+        
+        if result["success"]:
+            return make_response({
+                "status": "success",
+                "message": result["message"]
+            }, 200)
+        else:
+            status_code = 400
+            if result["error_code"] == "PROGRAM_NOT_FOUND":
+                status_code = 404
+            elif result["error_code"] == "PROGRAM_HAS_STUDENTS":
+                status_code = 409  # Conflict
+            elif result["error_code"] == "DATABASE_ERROR":
+                status_code = 500
+            
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"],
+                "details": result.get("details", {})
+            }, status_code)
+            
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
