@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onActivated } from 'vue'
 
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
@@ -27,7 +27,7 @@ const colleges = ref<College[]>([])
 const sortBy = ref<string>(collegeColumns[0].key)
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
-const searchBy = ref(collegeColumns[0].key)
+const searchBy = ref('')
 const totalPages = ref(1)
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -73,6 +73,9 @@ async function fetchColleges() {
 fetchColleges()
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchColleges)
 
+onActivated(() => {
+    fetchColleges()
+})
 // =========================
 // Actions
 // =========================

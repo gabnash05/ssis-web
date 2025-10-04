@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onActivated } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
@@ -27,7 +27,7 @@ const programs = ref<Program[]>([])
 const sortBy = ref<string>(programColumns[0].key)
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
-const searchBy = ref(programColumns[0].key)
+const searchBy = ref('')
 const totalPages = ref(1)
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -73,6 +73,9 @@ async function fetchPrograms() {
 fetchPrograms()
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchPrograms)
 
+onActivated(() => {
+    fetchPrograms()
+})
 // =========================
 // Actions
 // =========================
