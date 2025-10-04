@@ -31,7 +31,7 @@ const sortBy = ref<string>(studentColumns[0].key)
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
 const searchBy = ref(studentColumns[0].key)
-const totalPages = ref(10)
+const totalPages = ref(1)
 const currentPage = ref(1)
 const pageSize = ref(50)
 
@@ -61,6 +61,13 @@ async function fetchStudents() {
         });
 
         students.value = res.data;
+
+        if (res.meta) {
+            totalPages.value = Math.max(
+                1,
+                Math.ceil(res.meta.total / res.meta.per_page)
+            );
+        }
     } catch (err) {
         console.error("Failed to fetch students:", err);
     }

@@ -24,6 +24,11 @@ function changePage(newPage: number) {
     emit('update:page', newPage)
 }
 
+function changePageSize(newSize: number) {
+    emit('update:pageSize', newSize)
+    emit('update:page', 1)
+}
+
 const pagesToShow = computed(() => {
     const pages: number[] = []
     const start = Math.max(1, props.currentPage - 2)
@@ -39,8 +44,15 @@ const gotoPage = ref(props.currentPage)
 watch(() => props.currentPage, (newVal) => gotoPage.value = newVal)
 
 function submitGotoPage() {
-    const pageNumber = Number(gotoPage.value)
-    if (!Number.isNaN(pageNumber)) changePage(pageNumber)
+    let pageNumber = Number(gotoPage.value)
+    if (Number.isNaN(pageNumber)) return
+
+    if (pageNumber > props.totalPages) {
+        pageNumber = props.totalPages
+        gotoPage.value = props.totalPages
+    }
+
+    changePage(pageNumber)
 }
 </script>
 
@@ -52,7 +64,7 @@ function submitGotoPage() {
             <select
                 id="page-size"
                 :value="pageSize"
-                @change="emit('update:pageSize', parseInt(($event.target as HTMLSelectElement).value))"
+                @change="changePageSize(parseInt(($event.target as HTMLSelectElement).value))"
                 class="bg-glass text-white px-3 py-1 rounded-md border border-white/20 text-sm focus:outline-none"
             >
                 <option
@@ -118,4 +130,3 @@ function submitGotoPage() {
         </div>
     </div>
 </template>
-

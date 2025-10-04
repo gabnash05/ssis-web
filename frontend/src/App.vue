@@ -18,9 +18,11 @@ const layout = computed(() => {
         :current-page="route?.name ?? 'LOGIN'"
         @change-page="(page: string) => $router.push({ name: page })"
     >
-        <router-view v-slot="{ Component, route }">
+        <router-view v-slot="{ Component }">
             <transition name="fade-slide" mode="out-in">
-                <component :is="Component" :key="route.fullPath" />
+                <keep-alive include="StudentsView,ProgramsView,CollegesView">
+                    <component :is="Component" />
+                </keep-alive>
             </transition>
         </router-view>
     </component>
