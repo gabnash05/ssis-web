@@ -103,7 +103,7 @@ function handleHeaderClick(col: TableColumn<any>) {
                         :key="col.key as string"
                         :class="['px-4 py-3', col.class]"
                     >
-                        {{ row[col.key] }}
+                        {{ row[col.key] && row[col.key] !== '' ? row[col.key] : '-' }}
                     </td>
 
                     <!-- Actions Column -->
