@@ -88,11 +88,6 @@ watch(
             Fill out the student's information below.
         </p>
 
-        <!-- General Error Message -->
-        <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
-            {{ generalError }}
-        </div>
-
         <div class="flex flex-col gap-4">
             <!-- ID Number -->
             <div>
@@ -181,7 +176,7 @@ watch(
                 >
                     <option disabled value="" class="text-white/50">Select a college</option>
                     <option v-for="college in colleges" :key="college.code" :value="college.code">
-                        {{ college.name }}
+                        {{ college.code }} - {{ college.name }}
                     </option>
                 </select>
             </div>
@@ -203,9 +198,14 @@ watch(
                         :key="program.code"
                         :value="program.code"
                     >
-                        {{ program.name }}
+                        {{ program.code }} - {{ program.name }}
                     </option>
                 </select>
+            </div>
+
+            <!-- General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
             </div>
         </div>
     </RecordFormModal>

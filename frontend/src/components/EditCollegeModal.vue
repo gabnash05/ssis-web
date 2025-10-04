@@ -94,11 +94,6 @@ defineExpose({
             Edit the college's information below.
         </p>
 
-        <!-- General Error Message -->
-        <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
-            {{ generalError }}
-        </div>
-
         <div class="flex flex-col gap-4">
             <!-- College Code -->
             <div>
@@ -124,6 +119,11 @@ defineExpose({
                     placeholder="College of Computer Studies"
                     class="w-full p-2 rounded bg-neutral-800 text-sm text-white border border-white/10 focus:border-blue-400"
                 />
+            </div>
+
+            <!-- General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
             </div>
         </div>
     </RecordFormModal>
