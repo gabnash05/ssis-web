@@ -89,20 +89,27 @@ class BaseModel(ABC, Generic[T]):
             )
     
     def _build_search_filter(self, search_by: str, search_term: str, searchable_fields: List[str]) -> tuple:
-        """Build search filter clause and parameters."""
+        """Build search filter clause and parameters, with casting for numeric fields."""
         if not search_term:
             return "", {}
         
-        params = {}
+        params = {"search_term": f"%{search_term}%"}
+
+        numeric_fields = {"year_level"}  
+
         if search_by and search_by in searchable_fields:
-            # Search specific column
-            filters = f"WHERE {search_by} ILIKE :search_term"
-            params["search_term"] = f"%{search_term}%"
+            if search_by in numeric_fields:
+                filters = f"WHERE CAST({search_by} AS TEXT) ILIKE :search_term"
+            else:
+                filters = f"WHERE {search_by} ILIKE :search_term"
         else:
-            # Search across all allowed fields
-            conditions = [f"{field} ILIKE :search_term" for field in searchable_fields]
+            conditions = []
+            for field in searchable_fields:
+                if field in numeric_fields:
+                    conditions.append(f"CAST({field} AS TEXT) ILIKE :search_term")
+                else:
+                    conditions.append(f"{field} ILIKE :search_term")
             filters = f"WHERE {' OR '.join(conditions)}"
-            params["search_term"] = f"%{search_term}%"
         
         return filters, params
     
