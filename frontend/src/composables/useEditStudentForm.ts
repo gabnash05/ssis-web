@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 import { listColleges } from '../api/colleges'
 import { listPrograms } from '../api/programs'
 
-export function useEditStudentForm(emit: any) {
+export function useEditStudentForm() {
 // =========================
 // State
 // =========================
@@ -29,6 +29,7 @@ export function useEditStudentForm(emit: any) {
     const programs = ref<{ code: string; name: string; college_code: string }[]>([])
     const filteredPrograms = ref<{ code: string; name: string }[]>([])
     const college_code = ref('')
+    const generalError = ref('')
 
 // =========================
 // Form Logic
@@ -52,6 +53,7 @@ export function useEditStudentForm(emit: any) {
         Object.keys(errors.value).forEach((key) => {
             errors.value[key as keyof typeof errors.value] = ''
         })
+        generalError.value = ''
     }
 
     async function fetchInitialData() {
@@ -107,6 +109,26 @@ export function useEditStudentForm(emit: any) {
         return Object.values(currentErrors).every((err) => !err)
     }
 
+    function handleBackendErrors(err: any) {
+        // Clear previous errors
+        resetErrors()
+        
+        // Check if it's a backend error with details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details;
+            if (details.id_number) errors.value.id_number = details.id_number;
+            if (details.first_name) errors.value.first_name = details.first_name;
+            if (details.last_name) errors.value.last_name = details.last_name;
+            if (details.year_level) errors.value.year_level = details.year_level;
+            if (details.gender) errors.value.gender = details.gender;
+            if (details.college_code) errors.value.college_code = details.college_code;
+            if (details.program_code) errors.value.program_code = details.program_code;
+        }
+        
+        // Display general error message
+        generalError.value = err.message || 'Failed to update student. Please try again.';
+    }
+
     function handleSubmit() {
         return validateForm()
     }
@@ -139,10 +161,12 @@ export function useEditStudentForm(emit: any) {
         colleges,
         programs,
         filteredPrograms,
+        generalError,
         resetForm,
         fetchInitialData,
         loadStudent,
         handleSubmit,
         handleIdInput,
+        handleBackendErrors,
     }
 }

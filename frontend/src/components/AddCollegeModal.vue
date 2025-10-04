@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import { useAddCollegeForm } from '../composables/useAddCollegeForm.ts'
@@ -16,14 +16,17 @@ const emit = defineEmits<{
 const {
     newCollege,
     errors,
+    generalError,
     handleSubmit,
     resetForm,
+    handleBackendErrors,
 } = useAddCollegeForm(emit)
 
 // =========================
 // Confirmation Dialog State
 // =========================
 const showConfirm = ref(false)
+const isSubmitting = ref(false) 
 
 function handleValidatedSubmit() {
     const isValid = handleSubmit()
@@ -32,16 +35,39 @@ function handleValidatedSubmit() {
     showConfirm.value = true
 }
 
-function confirmSubmit() {
-    emit('submit', { ...newCollege.value })
-    emit('update:modelValue', false)
-    resetForm()
-    showConfirm.value = false
+async function confirmSubmit() {
+    isSubmitting.value = true 
+    
+    try {
+        emit('submit', { ...newCollege.value })
+    } catch (err) {
+        console.error("Submission error:", err)
+    } finally {
+        isSubmitting.value = false
+        showConfirm.value = false
+    }
 }
 
 function cancelSubmit() {
     showConfirm.value = false
 }
+
+// =========================
+// Watch for Modal Open
+// =========================
+watch(
+    () => props.modelValue,
+    (isOpen) => {
+        if (isOpen) {
+            resetForm()
+        }
+    }
+)
+
+// Expose the handleBackendErrors function for parent components
+defineExpose({
+    handleBackendErrors
+})
 </script>
 
 <template>
@@ -55,6 +81,11 @@ function cancelSubmit() {
         <p class="text-sm text-white/60 mb-4">
             Fill out the college's information below.
         </p>
+
+        <!-- General Error Message -->
+        <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+            {{ generalError }}
+        </div>
 
         <div class="flex flex-col gap-4">
             <!-- College Code -->

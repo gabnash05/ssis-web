@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -19,3 +19,24 @@ apiClient.interceptors.request.use(config => {
     }
     return config;
 });
+
+// Response interceptor to handle backend error format
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        if (error.response?.data && typeof error.response.data === 'object') {
+            const backendError = error.response.data as any;
+            
+            if ((backendError.status && backendError.status === "error") || ('success' in backendError && !backendError.success)) {
+                const customError = new Error(backendError.message || 'An error occurred');
+                (customError as any).response = {
+                    ...error.response,
+                    data: backendError
+                };
+                return Promise.reject(customError);
+            }
+        }
+        
+        return Promise.reject(error);
+    }
+);

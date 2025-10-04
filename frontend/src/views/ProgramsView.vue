@@ -40,6 +40,8 @@ const showEditModal = ref(false)
 const recordToEdit = ref<Program | null>(null)
 const showConfirmDialog = ref(false)
 const recordToDelete = ref<Program | null>(null)
+const addModalRef = ref<any>(null)
+const editModalRef = ref<any>(null)
 
 // =========================
 // Fetch Programs
@@ -86,8 +88,12 @@ async function handleProgramSubmit(program: Program) {
         await createProgram(program)
         showAddModal.value = false
         await fetchPrograms()
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error creating program:", err)
+        // Pass the error to the modal for display
+        if (addModalRef.value?.handleBackendErrors) {
+            addModalRef.value.handleBackendErrors(err)
+        }
     }
 }
 
@@ -98,8 +104,12 @@ async function handleProgramEdit(program: Program) {
         showEditModal.value = false
         recordToEdit.value = null
         await fetchPrograms()
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error updating program:", err)
+        // Pass the error to the modal for display
+        if (editModalRef.value?.handleBackendErrors) {
+            editModalRef.value.handleBackendErrors(err)
+        }
     }
 }
 
@@ -164,14 +174,16 @@ async function handleProgramDelete() {
             @update:pageSize="pageSize = $event"
         />
 
-        <!-- Add Student Modal -->
+        <!-- Add Program Modal -->
         <AddProgramModal
+            ref="addModalRef"
             v-model="showAddModal"
             @submit="handleProgramSubmit"
         />
 
-        <!-- Edit Student Modal -->
+        <!-- Edit Program Modal -->
         <EditProgramModal
+            ref="editModalRef"
             v-model="showEditModal"
             :program="recordToEdit"
             @submit="handleProgramEdit"

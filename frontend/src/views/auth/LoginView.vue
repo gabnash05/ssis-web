@@ -17,9 +17,13 @@ const errors = ref({
     password: ''
 })
 
+// General error message for login failures
+const generalError = ref('')
+
 async function handleLogin() {
     errors.value.email = ''
     errors.value.password = ''
+    generalError.value = ''
 
     if (!email.value) errors.value.email = 'Email is required'
     if (!password.value) errors.value.password = 'Password is required'
@@ -30,8 +34,18 @@ async function handleLogin() {
         await login(email.value, password.value);
         await checkAuth()
         router.push({ name: "STUDENTS" })
-    } catch (err) {
+    } catch (err: any) {
         console.error("Login failed:", err);
+        
+        // Check if it's a backend error with details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details;
+            if (details.email) errors.value.email = details.email;
+            if (details.password) errors.value.password = details.password;
+        }
+        
+        // Display general error message
+        generalError.value = err.message || 'Login failed. Please try again.';
     }
 }
 </script>
@@ -58,6 +72,12 @@ async function handleLogin() {
                 placeholder="Enter your password"
                 :error="errors.password"
             />
+
+            <!-- General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
+            </div>
+
             <AuthButton>Login</AuthButton>
         </form>
     </AuthFormWrapper>

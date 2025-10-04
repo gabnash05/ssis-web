@@ -19,16 +19,19 @@ const {
     college_code,
     colleges,
     filteredPrograms,
+    generalError,
     handleSubmit,
     handleIdInput,
     resetForm,
     fetchInitialData,
+    handleBackendErrors,
 } = useAddStudentForm(emit)
 
 // =========================
 // Confirmation Dialog State
 // =========================
 const showConfirm = ref(false)
+const isSubmitting = ref(false)
 
 function handleValidatedSubmit() {
     const isValid = handleSubmit()
@@ -37,16 +40,27 @@ function handleValidatedSubmit() {
     showConfirm.value = true
 }
 
-function confirmSubmit() {
-    emit('submit', { ...newStudent.value })
-    emit('update:modelValue', false)
-    resetForm()
-    showConfirm.value = false
+async function confirmSubmit() {
+    isSubmitting.value = true 
+    
+    try {
+        emit('submit', { ...newStudent.value })
+    } catch (err) {
+        console.error("Submission error:", err)
+    } finally {
+        isSubmitting.value = false
+        showConfirm.value = false
+    }
 }
 
 function cancelSubmit() {
     showConfirm.value = false
 }
+
+// Expose the handleBackendErrors function for parent components
+defineExpose({
+    handleBackendErrors
+})
 
 // =========================
 // Watch for Modal Open
@@ -73,6 +87,11 @@ watch(
         <p class="text-sm text-white/60 mb-4">
             Fill out the student's information below.
         </p>
+
+        <!-- General Error Message -->
+        <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+            {{ generalError }}
+        </div>
 
         <div class="flex flex-col gap-4">
             <!-- ID Number -->

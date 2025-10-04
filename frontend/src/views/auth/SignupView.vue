@@ -20,9 +20,15 @@ const errors = ref({
     confirmPassword: ''
 })
 
-async function handleSignup() {
-    errors.value = { username: '', email: '', password: '', confirmPassword: '' }
+// ✅ General error message for signup failures
+const generalError = ref('')
 
+async function handleSignup() {
+    // reset errors
+    errors.value = { username: '', email: '', password: '', confirmPassword: '' }
+    generalError.value = ''
+
+    // client-side validation
     if (!username.value) errors.value.username = 'Name is required'
     if (!email.value) errors.value.email = 'Email is required'
     if (!password.value) errors.value.password = 'Password is required'
@@ -35,11 +41,23 @@ async function handleSignup() {
     if (Object.values(errors.value).some(e => e)) return
 
     try {
-        await signup(username.value, email.value, password.value);
+        await signup(username.value, email.value, password.value)
         await checkAuth()
         router.push({ name: "STUDENTS" })
-    } catch (err) {
-        console.error("Login failed:", err);
+    } catch (err: any) {
+        console.error("Signup failed:", err);
+
+        // ✅ Handle backend validation details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details
+            if (details.username) errors.value.username = details.username
+            if (details.email) errors.value.email = details.email
+            if (details.password) errors.value.password = details.password
+            if (details.confirmPassword) errors.value.confirmPassword = details.confirmPassword
+        }
+
+        // ✅ General error message
+        generalError.value = err.message || 'Signup failed. Please try again.'
     }
 }
 </script>
@@ -80,6 +98,12 @@ async function handleSignup() {
                 placeholder="Confirm your password"
                 :error="errors.confirmPassword"
             />
+
+            <!-- ✅ General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
+            </div>
+
             <AuthButton>Sign Up</AuthButton>
         </form>
     </AuthFormWrapper>

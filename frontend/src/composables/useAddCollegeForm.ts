@@ -14,6 +14,8 @@ export function useAddCollegeForm(emit: any) {
         college_name: '',
     })
 
+    const generalError = ref('')
+
 // =========================
 // Methods
 // =========================
@@ -31,6 +33,7 @@ export function useAddCollegeForm(emit: any) {
         Object.keys(errors.value).forEach((key) => {
             errors.value[key as keyof typeof errors.value] = ''
         })
+        generalError.value = ''
     }
 
     function validateForm() {
@@ -51,6 +54,21 @@ export function useAddCollegeForm(emit: any) {
         return Object.values(currentErrors).every((err) => !err)
     }
 
+    function handleBackendErrors(err: any) {
+        // Clear previous errors
+        resetErrors()
+        
+        // Check if it's a backend error with details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details;
+            if (details.college_code) errors.value.college_code = details.college_code;
+            if (details.college_name) errors.value.college_name = details.college_name;
+        }
+        
+        // Display general error message
+        generalError.value = err.message || 'Failed to create college. Please try again.';
+    }
+
     function handleSubmit() {
         return validateForm()
     }
@@ -58,7 +76,9 @@ export function useAddCollegeForm(emit: any) {
     return {
         newCollege,
         errors,
+        generalError,
         resetForm,
         handleSubmit,
+        handleBackendErrors,
     }
 }

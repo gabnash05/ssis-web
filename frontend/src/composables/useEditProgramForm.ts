@@ -19,6 +19,7 @@ export function useEditProgramForm(emit: any) {
     })
 
     const colleges = ref<{ code: string; name: string }[]>([])
+    const generalError = ref('')
 
 // =========================
 // Form Logic
@@ -37,6 +38,7 @@ export function useEditProgramForm(emit: any) {
         Object.keys(errors.value).forEach((key) => {
             errors.value[key as keyof typeof errors.value] = ''
         })
+        generalError.value = ''
     }
 
     async function fetchInitialData() {
@@ -70,6 +72,22 @@ export function useEditProgramForm(emit: any) {
         return Object.values(currentErrors).every((err) => !err)
     }
 
+    function handleBackendErrors(err: any) {
+        // Clear previous errors
+        resetErrors()
+        
+        // Check if it's a backend error with details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details;
+            if (details.program_code) errors.value.program_code = details.program_code;
+            if (details.program_name) errors.value.program_name = details.program_name;
+            if (details.college_code) errors.value.college_code = details.college_code;
+        }
+        
+        // Display general error message
+        generalError.value = err.message || 'Failed to update program. Please try again.';
+    }
+
     function handleSubmit() {
         return validateForm()
     }
@@ -78,9 +96,11 @@ export function useEditProgramForm(emit: any) {
         editedProgram,
         errors,
         colleges,
+        generalError,
         resetForm,
         fetchInitialData,
         loadProgram,
         handleSubmit,
+        handleBackendErrors,
     }
 }

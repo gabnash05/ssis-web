@@ -43,6 +43,8 @@ const showEditModal = ref(false)
 const recordToEdit = ref<Student | null>(null)
 const showConfirmDialog = ref(false)
 const recordToDelete = ref<Student | null>(null)
+const addModalRef = ref<any>(null)
+const editModalRef = ref<any>(null)
 
 // =========================
 // Fetch Students
@@ -89,8 +91,12 @@ async function handleStudentSubmit(student: Student) {
         await createStudent(student);
         showAddModal.value = false;
         await fetchStudents();
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error creating student:", err);
+        // Pass the error to the modal for display
+        if (addModalRef.value?.handleBackendErrors) {
+            addModalRef.value.handleBackendErrors(err);
+        }
     }
 }
 
@@ -101,8 +107,12 @@ async function handleStudentEdit(student: Student) {
         showEditModal.value = false;
         recordToEdit.value = null;
         await fetchStudents();
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error updating student:", err);
+        // Pass the error to the modal for display
+        if (editModalRef.value?.handleBackendErrors) {
+            editModalRef.value.handleBackendErrors(err);
+        }
     }
 }
 
@@ -169,12 +179,14 @@ async function handleStudentDelete() {
 
         <!-- Add Student Modal -->
         <AddStudentModal
+            ref="addModalRef"
             v-model="showAddModal"
             @submit="handleStudentSubmit"
         />
 
         <!-- Edit Student Modal -->
         <EditStudentModal
+            ref="editModalRef"
             v-model="showEditModal"
             :student="recordToEdit"
             @submit="handleStudentEdit"

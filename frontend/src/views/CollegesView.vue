@@ -40,6 +40,8 @@ const showEditModal = ref(false)
 const recordToEdit = ref<College | null>(null)
 const showConfirmDialog = ref(false)
 const recordToDelete = ref<College | null>(null)
+const addModalRef = ref<any>(null)
+const editModalRef = ref<any>(null)
 
 // =========================
 // Fetch Programs
@@ -86,8 +88,11 @@ async function handleCollegeSubmit(college: College) {
         await createCollege(college)
         showAddModal.value = false
         await fetchColleges()
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error creating college:", err)
+        if (addModalRef.value?.handleBackendErrors) {
+            addModalRef.value.handleBackendErrors(err)
+        }
     }
 }
 
@@ -98,8 +103,12 @@ async function handleCollegeEdit(college: College) {
         showEditModal.value = false
         recordToEdit.value = null
         await fetchColleges()
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error updating college:", err)
+        // Pass the error to the modal for display
+        if (editModalRef.value?.handleBackendErrors) {
+            editModalRef.value.handleBackendErrors(err)
+        }
     }
 }
 
@@ -164,14 +173,16 @@ async function handleCollegeDelete() {
             @update:pageSize="pageSize = $event"
         />
 
-        <!-- Add Student Modal -->
+        <!-- Add College Modal -->
         <AddCollegeModal
+            ref="addModalRef"
             v-model="showAddModal"
             @submit="handleCollegeSubmit"
         />
 
-        <!-- Edit Student Modal -->
+        <!-- Edit College Modal -->
         <EditCollegeModal
+            ref="editModalRef"
             v-model="showEditModal"
             :college="recordToEdit"
             @submit="handleCollegeEdit"

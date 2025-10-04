@@ -29,6 +29,7 @@ export function useAddStudentForm(emit: any) {
     const programs = ref<{ code: string; name: string; college_code: string }[]>([])
     const filteredPrograms = ref<{ code: string; name: string }[]>([])
     const college_code = ref('')
+    const generalError = ref('')
 
 // =========================
 // State
@@ -53,6 +54,7 @@ export function useAddStudentForm(emit: any) {
         Object.keys(errors.value).forEach((key) => {
             errors.value[key as keyof typeof errors.value] = ''
         })
+        generalError.value = ''
     }
 
     async function fetchInitialData() {
@@ -97,6 +99,26 @@ export function useAddStudentForm(emit: any) {
         return Object.values(currentErrors).every((err) => !err)
     }
 
+    function handleBackendErrors(err: any) {
+        // Clear previous errors
+        resetErrors()
+        
+        // Check if it's a backend error with details
+        if (err.response?.data?.details) {
+            const details = err.response.data.details;
+            if (details.id_number) errors.value.id_number = details.id_number;
+            if (details.first_name) errors.value.first_name = details.first_name;
+            if (details.last_name) errors.value.last_name = details.last_name;
+            if (details.year_level) errors.value.year_level = details.year_level;
+            if (details.gender) errors.value.gender = details.gender;
+            if (details.college_code) errors.value.college_code = details.college_code;
+            if (details.program_code) errors.value.program_code = details.program_code;
+        }
+        
+        // Display general error message
+        generalError.value = err.message || 'Failed to create student. Please try again.';
+    }
+
     function handleSubmit() {
         return validateForm()
     }
@@ -129,9 +151,11 @@ export function useAddStudentForm(emit: any) {
         colleges,
         programs,
         filteredPrograms,
+        generalError,
         resetForm,
         fetchInitialData,
         handleSubmit,
         handleIdInput,
+        handleBackendErrors,
     }
 }

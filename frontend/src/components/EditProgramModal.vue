@@ -25,16 +25,19 @@ const {
     editedProgram,
     errors,
     colleges,
+    generalError,
     resetForm,
     fetchInitialData,
     loadProgram,
     handleSubmit,
+    handleBackendErrors,
 } = useEditProgramForm(emit)
 
 // =========================
 // Confirmation Dialog State and Methods
 // =========================
 const showConfirm = ref(false)
+const isSubmitting = ref(false)
 
 function handleValidatedSubmit() {
     const isValid = handleSubmit()
@@ -43,11 +46,17 @@ function handleValidatedSubmit() {
     showConfirm.value = true
 }
 
-function confirmSubmit() {
-    emit('submit', { ...editedProgram.value })
-    emit('update:modelValue', false)
-    resetForm()
-    showConfirm.value = false
+async function confirmSubmit() {
+    isSubmitting.value = true 
+    
+    try {
+        emit('submit', { ...editedProgram.value })
+    } catch (err) {
+        console.error("Submission error:", err)
+    } finally {
+        isSubmitting.value = false
+        showConfirm.value = false
+    }
 }
 
 function cancelSubmit() {
@@ -77,6 +86,11 @@ watch(
     },
     { immediate: true }
 )
+
+// Expose the handleBackendErrors function for parent components
+defineExpose({
+    handleBackendErrors
+})
 </script>
 
 <template>
@@ -90,6 +104,11 @@ watch(
         <p class="text-sm text-white/60 mb-4">
             Edit the program's information below.
         </p>
+
+        <!-- General Error Message -->
+        <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+            {{ generalError }}
+        </div>
 
         <div class="flex flex-col gap-4">
             <!-- Program Code -->
