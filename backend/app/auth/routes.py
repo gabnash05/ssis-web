@@ -7,7 +7,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from ..utils.route_utils import make_response
-from .services import create_user, authenticate_user
+from .services import create_user, authenticate_user, get_user_by_id
 
 bp = Blueprint("auth", __name__)
 
@@ -128,14 +128,24 @@ def logout():
 def me():
     try:
         identity = get_jwt_identity()
+
+        result = get_user_by_id(identity)
+        if not result["success"]:
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result.get("error_code", "USER_NOT_FOUND")
+            }, 404)
+        
         return make_response({
-            "status": "success", 
+            "status": "success",
             "message": "User information retrieved successfully",
-            "data": {"user_id": identity}
+            "data": result["user"]
         }, 200)
+
     except Exception as e:
         return make_response({
-            "status": "error", 
+            "status": "error",
             "message": f"Unexpected error occurred: {str(e)}",
             "error_code": "UNEXPECTED_ERROR"
         }, 500)
