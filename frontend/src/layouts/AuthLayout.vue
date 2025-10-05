@@ -1,3 +1,8 @@
+<script setup lang="ts">
+defineProps<{ currentPage: string }>()
+const emit = defineEmits<{ (e: 'changePage', page: string): void }>()
+</script>
+
 <template>
     <!-- Background (same as AppLayout) -->
     <div class="fixed inset-0 -z-10 overflow-hidden">

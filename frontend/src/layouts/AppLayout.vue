@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { ApplicationPage } from '../types'
+import { useUserStore } from '../stores/userStore'
+import UserEditModal from '../components/UserEditModal.vue';
 
 // =========================
 // Props & Emits
@@ -19,6 +21,19 @@ const emit = defineEmits<{
 const sidebarOpen = ref(false)
 const showLabels = ref(false)
 const showLogo = ref(false)
+
+// =========================
+// User State
+// =========================
+const userStore = useUserStore()
+
+onMounted(async () => {
+    try {
+        await userStore.fetchCurrentUser()
+    } catch (err) {
+        console.error('Failed to fetch current user:', err)
+    }
+})
 
 // =========================
 // Tab Logic
@@ -155,18 +170,26 @@ function toggleSidebar() {
                     </div>
                 </div>
 
-                <!-- Bottom icon + Settings -->
+                <!-- Bottom User Section -->
                 <div
-                    class="flex items-center gap-3 w-full h-10 rounded-md transition-all duration-300 cursor-pointer hover:bg-white/5"
-                    :class="sidebarOpen ? 'pl-2' : 'pl-[6px]'"
+                    class="flex items-center gap-3 w-full h-14 rounded-md transition-all duration-300 hover:bg-white/5 cursor-pointer"
+                    :class="sidebarOpen ? 'pl-2' : 'justify-center'"
+                    @click="userStore.showUserModal = true"
                 >
-                    <img src="../assets/icons/adjust.svg" alt="Settings" class="w-6 h-6 filter invert">
+                    <img src="../assets/icons/circle-user.svg" class="w-10 h-10 rounded-full p-1 filter invert" />
                     <transition name="fade">
-                        <span v-if="showLabels" class="text-white text-sm whitespace-nowrap">Settings</span>
+                        <div v-if="showLabels" class="flex flex-col text-white text-sm min-w-0 flex-1"> <!-- Added min-w-0 and flex-1 -->
+                            <span class="truncate">{{ userStore.currentUser?.username || 'User' }}</span> <!-- Added truncate -->
+                            <span class="text-xs text-white/60 truncate">{{ userStore.currentUser?.email || 'No email' }}</span> <!-- Added truncate -->
+                        </div>
                     </transition>
                 </div>
             </nav>
 
+            <UserEditModal
+                v-model="userStore.showUserModal"
+                :user="userStore.currentUser"
+            />
             <!-- Main Content Area -->
             <div class="flex-1 px-6 overflow-y-auto">
                 <slot />

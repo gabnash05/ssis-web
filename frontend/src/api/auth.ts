@@ -15,3 +15,7 @@ export async function logout() {
 export async function getCurrentUser() {
     return apiClient.get("/auth/me");
 }
+
+export async function updateUser(data: { username?: string; password?: string }) {
+    return apiClient.put("/auth/update", data);
+}
