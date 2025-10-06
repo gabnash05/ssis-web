@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS colleges (
     college_code VARCHAR(20) PRIMARY KEY,
-    college_name VARCHAR(50) NOT NULL
+    college_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS programs (
     program_code VARCHAR(20) PRIMARY KEY,
-    program_name VARCHAR(50) NOT NULL,
+    program_name VARCHAR(100) NOT NULL,
     college_code VARCHAR(20) REFERENCES colleges(college_code) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
