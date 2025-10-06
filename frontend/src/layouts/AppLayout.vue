@@ -82,7 +82,7 @@ function toggleSidebar() {
 
     <!-- Glass Background -->
     <div class="min-h-screen py-7 px-15 flex justify-center items-center">
-        <div class="w-full h-full max-h-[calc(100vh-5rem)] flex p-8 rounded-xl bg-glass border border-white/10 shadow-xl">
+        <div class="w-full h-[90vh] flex p-8 rounded-xl bg-glass border border-white/10 shadow-xl">
             
             <!-- Sidebar -->
             <nav

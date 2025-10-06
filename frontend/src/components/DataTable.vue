@@ -35,7 +35,7 @@ function handleHeaderClick(col: TableColumn<any>) {
 </script>
 
 <template>
-    <div class="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-xl border border-white/10 bg-[#1d1d1d]/40 shadow-lg">
+    <div class="max-h-[65vh] overflow-x-auto overflow-y-auto rounded-xl border border-white/10 bg-[#1d1d1d]/40 shadow-lg">
         <table class="min-w-full text-sm text-left text-white">
             <thead class="bg-[#777777]/95 uppercase text-xs font-semibold sticky top-0 z-1">
                 <tr>

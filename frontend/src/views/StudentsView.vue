@@ -74,6 +74,12 @@ async function fetchStudents() {
 }
 
 fetchStudents()
+
+watch([searchTerm, searchBy, sortBy, sortOrder], () => {
+    currentPage.value = 1;
+    fetchStudents();
+});
+
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents)
 
 onActivated(() => {

@@ -71,6 +71,12 @@ async function fetchPrograms() {
 }
 
 fetchPrograms()
+
+watch([searchTerm, searchBy, sortBy, sortOrder], () => {
+    currentPage.value = 1;
+    fetchPrograms();
+});
+
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchPrograms)
 
 onActivated(() => {

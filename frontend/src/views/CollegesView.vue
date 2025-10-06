@@ -71,6 +71,12 @@ async function fetchColleges() {
 }
 
 fetchColleges()
+
+watch([searchTerm, searchBy, sortBy, sortOrder], () => {
+    currentPage.value = 1;
+    fetchColleges();
+});
+
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchColleges)
 
 onActivated(() => {

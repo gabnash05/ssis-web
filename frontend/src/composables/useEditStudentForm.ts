@@ -63,12 +63,14 @@ export function useEditStudentForm() {
             name: c.college_name,
         }))
 
-        const programsRes = await listPrograms({})
+        const programsRes = await listPrograms({page_size: 100})
         programs.value = programsRes.data.map(p => ({
             code: p.program_code,
             name: p.program_name,
             college_code: p.college_code,
         }))
+
+        console.log(programs.value)
     }
 
     function loadStudent(student: any) {
