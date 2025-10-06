@@ -238,7 +238,7 @@ class Program(BaseModel):
     
     @classmethod
     def search(cls, search_by: str = "", search_term: str = "", sort_by: str = "program_code", 
-               sort_order: str = "ASC", page: int = 1, page_size: int = 10) -> Tuple[List['Program'], int]:
+               sort_order: str = "ASC", page: int = 1, page_size: Optional[int] = 10) -> Tuple[List['Program'], int]:
         """Search programs with pagination."""
         # Validate sort field
         allowed_sort_fields = ["program_code", "program_name", "college_code"]
@@ -257,9 +257,11 @@ class Program(BaseModel):
         # Build sort clause
         sort_clause = instance._build_sort_clause(sort_by, sort_order, allowed_sort_fields)
         
-        # Build pagination
-        offset = (page - 1) * page_size
-        pagination_clause = instance._build_pagination_clause(page_size, offset)
+        if not page_size or page_size <= 0:
+            pagination_clause = ""
+        else:
+            offset = (page - 1) * page_size
+            pagination_clause = instance._build_pagination_clause(page_size, offset)
         
         # Execute search query
         query = f"""

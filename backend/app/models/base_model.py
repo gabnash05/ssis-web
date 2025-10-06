@@ -114,14 +114,39 @@ class BaseModel(ABC, Generic[T]):
         return filters, params
     
     def _build_sort_clause(self, sort_by: str, sort_order: str, allowed_sort_fields: List[str]) -> str:
-        """Build ORDER BY clause with validation."""
+        """Build ORDER BY clause with context-aware secondary sorting rules."""
         if sort_by not in allowed_sort_fields:
-            sort_by = allowed_sort_fields[0]  # Default to first allowed field
-        
+            sort_by = allowed_sort_fields[0]
+
         if sort_order.upper() not in ["ASC", "DESC"]:
             sort_order = "ASC"
-        
-        return f"ORDER BY {sort_by} {sort_order.upper()}"
+        else:
+            sort_order = sort_order.upper()
+
+        # Determine model type by checking primary identifying fields
+        has_student_fields = all(field in allowed_sort_fields for field in ["id_number", "first_name", "last_name"])
+        has_program_fields = all(field in allowed_sort_fields for field in ["program_code", "program_name", "college_code"])
+        has_college_fields = all(field in allowed_sort_fields for field in ["college_code", "college_name"])
+
+        sort_fields = []
+
+        if has_student_fields:
+            if sort_by == "last_name":
+                sort_fields = [(sort_by, sort_order), ("first_name", sort_order)]
+            else:
+                sort_fields = [(sort_by, sort_order), ("last_name", sort_order), ("first_name", sort_order)]
+
+        elif has_program_fields:
+            sort_fields = [(sort_by, sort_order)]
+
+        elif has_college_fields:
+            sort_fields = [(sort_by, sort_order)]
+
+        else:
+            sort_fields = [(sort_by, sort_order)]
+
+        sort_clause = ", ".join(f"{field} {order}" for field, order in sort_fields if field in allowed_sort_fields)
+        return f"ORDER BY {sort_clause}"
     
     def _build_pagination_clause(self, limit: int, offset: int) -> str:
         """Build LIMIT and OFFSET clause."""

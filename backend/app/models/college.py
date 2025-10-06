@@ -189,7 +189,7 @@ class College(BaseModel):
     
     @classmethod
     def search(cls, search_by: str = "", search_term: str = "", sort_by: str = "college_code", 
-               sort_order: str = "ASC", page: int = 1, page_size: int = 10) -> Tuple[List['College'], int]:
+               sort_order: str = "ASC", page: int = 1, page_size: Optional[int] = 10) -> Tuple[List['College'], int]:
         """Search colleges with pagination."""
         # Validate sort field
         allowed_sort_fields = ["college_code", "college_name"]
@@ -209,8 +209,11 @@ class College(BaseModel):
         sort_clause = instance._build_sort_clause(sort_by, sort_order, allowed_sort_fields)
         
         # Build pagination
-        offset = (page - 1) * page_size
-        pagination_clause = instance._build_pagination_clause(page_size, offset)
+        if not page_size or page_size <= 0:
+            pagination_clause = ""
+        else:
+            offset = (page - 1) * page_size
+            pagination_clause = instance._build_pagination_clause(page_size, offset)
         
         # Execute search query
         query = f"""
