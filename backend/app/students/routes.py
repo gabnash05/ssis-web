@@ -30,7 +30,7 @@ def list_students_route():
             }, 400)
 
         sort_by = request.args.get("sort_by", "id_number")
-        sort_order = request.args.get("order", "ASC").upper()
+        sort_order = request.args.get("sort_order", "ASC").upper()
         search_term = request.args.get("q", "")
         search_by = request.args.get("search_by", "")
 

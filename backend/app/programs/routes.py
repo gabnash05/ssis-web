@@ -30,7 +30,7 @@ def list_programs_route():
             }, 400)
 
         sort_by = request.args.get("sort_by", "program_code")
-        sort_order = request.args.get("order", "ASC").upper()
+        sort_order = request.args.get("sort_order", "ASC").upper()
         search_term = request.args.get("q", "")
         search_by = request.args.get("search_by", "")
 
