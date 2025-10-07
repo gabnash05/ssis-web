@@ -5,6 +5,7 @@ __pycache__/
 .Python
 Pipfile.lock
 .env
+.flaskenv
 
 # Node
 node_modules/
