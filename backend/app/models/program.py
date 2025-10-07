@@ -257,6 +257,7 @@ class Program(BaseModel):
         # Build sort clause
         sort_clause = instance._build_sort_clause(sort_by, sort_order, allowed_sort_fields)
         
+        # Build pagination
         if not page_size or page_size <= 0:
             pagination_clause = ""
         else:

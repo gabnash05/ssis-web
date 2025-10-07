@@ -30,7 +30,7 @@ def list_colleges():
     
         sort_by = request.args.get("sort_by", "college_code")
         sort_order = request.args.get("sort_order", "ASC").upper()
-        search_term = request.args.get("search_term", "")
+        search_term = request.args.get("q", "")
         search_by = request.args.get("search_by", "")
 
         result = search_colleges(
