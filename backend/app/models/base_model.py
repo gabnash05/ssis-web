@@ -132,9 +132,9 @@ class BaseModel(ABC, Generic[T]):
 
         if has_student_fields:
             if sort_by == "last_name":
-                sort_fields = [(sort_by, sort_order), ("first_name", sort_order)]
+                sort_fields = [(sort_by, sort_order), ("first_name", "ASC")]
             else:
-                sort_fields = [(sort_by, sort_order), ("last_name", sort_order), ("first_name", sort_order)]
+                sort_fields = [(sort_by, sort_order), ("last_name", "ASC"), ("first_name", "ASC")]
 
         elif has_program_fields:
             sort_fields = [(sort_by, sort_order)]
