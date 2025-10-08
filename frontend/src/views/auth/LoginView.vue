@@ -10,6 +10,7 @@ import { router } from '../../router'
 
 const email = ref('')
 const password = ref('')
+const isLoading = ref(false)
 
 // ✅ Store error messages per field
 const errors = ref({
@@ -31,6 +32,8 @@ async function handleLogin() {
     if (errors.value.email || errors.value.password) return
 
     try {
+        isLoading.value = true;
+
         await login(email.value, password.value);
         await checkAuth()
         router.push({ name: "STUDENTS" })
@@ -44,8 +47,9 @@ async function handleLogin() {
             if (details.password) errors.value.password = details.password;
         }
         
-        // Display general error message
         generalError.value = err.message || 'Login failed. Please try again.';
+    } finally {
+        isLoading.value = false;
     }
 }
 </script>
@@ -78,7 +82,9 @@ async function handleLogin() {
                 {{ generalError }}
             </div>
 
-            <AuthButton>Login</AuthButton>
+            <AuthButton :loading="isLoading" :disabled="isLoading">
+                {{ isLoading ? "Logging in..." : "Login"}}
+            </AuthButton>
         </form>
     </AuthFormWrapper>
 </template>

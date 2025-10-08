@@ -7,10 +7,11 @@ import { signup } from '../../api/auth'
 import { checkAuth } from '../../composables/useAuth'
 import { router } from '../../router'
 
-const username = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const username = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const isLoading = ref(false);
 
 // ✅ Store error messages per field
 const errors = ref({
@@ -18,46 +19,48 @@ const errors = ref({
     email: '',
     password: '',
     confirmPassword: ''
-})
+});
 
 // ✅ General error message for signup failures
-const generalError = ref('')
+const generalError = ref('');
 
 async function handleSignup() {
     // reset errors
-    errors.value = { username: '', email: '', password: '', confirmPassword: '' }
-    generalError.value = ''
+    errors.value = { username: '', email: '', password: '', confirmPassword: '' };
+    generalError.value = '';
 
     // client-side validation
-    if (!username.value) errors.value.username = 'Name is required'
-    if (!email.value) errors.value.email = 'Email is required'
-    if (!password.value) errors.value.password = 'Password is required'
+    if (!username.value) errors.value.username = 'Name is required';
+    if (!email.value) errors.value.email = 'Email is required';
+    if (!password.value) errors.value.password = 'Password is required';
     if (!confirmPassword.value) {
-        errors.value.confirmPassword = 'Please confirm password'
+        errors.value.confirmPassword = 'Please confirm password';
     } else if (password.value !== confirmPassword.value) {
-        errors.value.confirmPassword = 'Passwords do not match'
+        errors.value.confirmPassword = 'Passwords do not match';
     }
 
     if (Object.values(errors.value).some(e => e)) return
 
     try {
-        await signup(username.value, email.value, password.value)
-        await checkAuth()
+        isLoading.value = true;
+
+        await signup(username.value, email.value, password.value);
+        await checkAuth();
         router.push({ name: "STUDENTS" })
     } catch (err: any) {
         console.error("Signup failed:", err);
 
-        // ✅ Handle backend validation details
         if (err.response?.data?.details) {
-            const details = err.response.data.details
-            if (details.username) errors.value.username = details.username
-            if (details.email) errors.value.email = details.email
-            if (details.password) errors.value.password = details.password
-            if (details.confirmPassword) errors.value.confirmPassword = details.confirmPassword
+            const details = err.response.data.details;
+            if (details.username) errors.value.username = details.username;
+            if (details.email) errors.value.email = details.email;
+            if (details.password) errors.value.password = details.password;
+            if (details.confirmPassword) errors.value.confirmPassword = details.confirmPassword;
         }
 
-        // ✅ General error message
-        generalError.value = err.message || 'Signup failed. Please try again.'
+        generalError.value = err.message || 'Signup failed. Please try again.';
+    } finally {
+        isLoading.value = false;
     }
 }
 </script>
@@ -104,7 +107,9 @@ async function handleSignup() {
                 {{ generalError }}
             </div>
 
-            <AuthButton>Sign Up</AuthButton>
+            <AuthButton :loading="isLoading" :disabled="isLoading">
+                {{ isLoading ? "Signing in..." : "Sign up"}}
+            </AuthButton>
         </form>
     </AuthFormWrapper>
 </template>
