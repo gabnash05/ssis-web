@@ -42,12 +42,15 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<College | null>(null)
 const addModalRef = ref<any>(null)
 const editModalRef = ref<any>(null)
+const isLoading = ref(false)
 
 // =========================
 // Fetch Programs
 // =========================
 async function fetchColleges() {
     try {
+        isLoading.value = true;
+
         const res = await listColleges({
             page: currentPage.value,
             page_size: pageSize.value,
@@ -67,6 +70,8 @@ async function fetchColleges() {
         }
     } catch (err) {
         console.error("Failed to fetch colleges:", err)
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -174,6 +179,7 @@ async function handleCollegeDelete() {
             :rows="colleges"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
+            :loading="isLoading"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"

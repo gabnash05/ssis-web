@@ -42,12 +42,15 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<Program | null>(null)
 const addModalRef = ref<any>(null)
 const editModalRef = ref<any>(null)
+const isLoading = ref(false)
 
 // =========================
 // Fetch Programs
 // =========================
 async function fetchPrograms() {
     try {
+        isLoading.value = true;
+
         const res = await listPrograms({
             page: currentPage.value,
             page_size: pageSize.value,
@@ -67,6 +70,8 @@ async function fetchPrograms() {
         }
     } catch (err) {
         console.error("Failed to fetch programs:", err)
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -175,6 +180,7 @@ async function handleProgramDelete() {
             :rows="programs"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
+            :loading="isLoading"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"

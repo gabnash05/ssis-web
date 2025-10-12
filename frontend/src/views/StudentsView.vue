@@ -11,6 +11,7 @@ import { createStudent, deleteStudent, listStudents, updateStudent } from '../ap
 
 import type { SortOrder, Student } from '../types'
 
+
 // =========================
 // Table Columns
 // =========================
@@ -21,36 +22,39 @@ const studentColumns = [
     { key: 'year_level', label: 'Year Level', sortable: true },
     { key: 'gender', label: 'Gender', sortable: true },
     { key: 'program_code', label: 'Program Code', sortable: true },
-]
+];
 
 // =========================
 // Table + Pagination State
 // =========================
-const students = ref<Student[]>([])
-const sortBy = ref<string>(studentColumns[0].key)
-const sortOrder = ref<SortOrder>('ASC')
-const searchTerm = ref('')
-const searchBy = ref('')
-const totalPages = ref(1)
-const currentPage = ref(1)
-const pageSize = ref(50)
+const students = ref<Student[]>([]);
+const sortBy = ref<string>(studentColumns[0].key);
+const sortOrder = ref<SortOrder>('ASC');
+const searchTerm = ref('');
+const searchBy = ref('');
+const totalPages = ref(1);
+const currentPage = ref(1);
+const pageSize = ref(50);
 
 // =========================
 // Modal State
 // =========================
-const showAddModal = ref(false)
-const showEditModal = ref(false)
-const recordToEdit = ref<Student | null>(null)
-const showConfirmDialog = ref(false)
-const recordToDelete = ref<Student | null>(null)
-const addModalRef = ref<any>(null)
-const editModalRef = ref<any>(null)
+const showAddModal = ref(false);
+const showEditModal = ref(false);
+const recordToEdit = ref<Student | null>(null);
+const showConfirmDialog = ref(false);
+const recordToDelete = ref<Student | null>(null);
+const addModalRef = ref<any>(null);
+const editModalRef = ref<any>(null);
+const isLoading = ref(false);
 
 // =========================
 // Fetch Students
 // =========================
 async function fetchStudents() {
     try {
+        isLoading.value = true;
+
         const res = await listStudents({
             page: currentPage.value,
             page_size: pageSize.value,
@@ -70,6 +74,8 @@ async function fetchStudents() {
         }
     } catch (err) {
         console.error("Failed to fetch students:", err);
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -80,27 +86,27 @@ watch([searchTerm, searchBy, sortBy, sortOrder], () => {
     fetchStudents();
 });
 
-watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents)
+watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents);
 
 onActivated(() => {
-    fetchStudents()
+    fetchStudents();
 })
 
 // =========================
 // Actions
 // =========================
 function handleAdd() {
-    showAddModal.value = true
+    showAddModal.value = true;
 }
 
 function handleEdit(student: Student) {
-    recordToEdit.value = student
-    showEditModal.value = true
+    recordToEdit.value = student;
+    showEditModal.value = true;
 }
 
 async function handleDelete(student: Student) {
-    recordToDelete.value = student
-    showConfirmDialog.value = true
+    recordToDelete.value = student;
+    showConfirmDialog.value = true;
 }
 
 async function handleStudentSubmit(student: Student) {
@@ -179,6 +185,7 @@ async function handleStudentDelete() {
             :rows="students"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
+            :loading="isLoading"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"

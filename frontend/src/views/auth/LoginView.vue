@@ -8,28 +8,28 @@ import { login } from '../../api/auth'
 import { checkAuth } from '../../composables/useAuth'
 import { router } from '../../router'
 
-const email = ref('')
-const password = ref('')
-const isLoading = ref(false)
+const email = ref('');
+const password = ref('');
+const isLoading = ref(false);
 
 // ✅ Store error messages per field
 const errors = ref({
     email: '',
     password: ''
-})
+});
 
 // General error message for login failures
-const generalError = ref('')
+const generalError = ref('');
 
 async function handleLogin() {
-    errors.value.email = ''
-    errors.value.password = ''
-    generalError.value = ''
+    errors.value.email = '';
+    errors.value.password = '';
+    generalError.value = '';
 
-    if (!email.value) errors.value.email = 'Email is required'
-    if (!password.value) errors.value.password = 'Password is required'
+    if (!email.value) errors.value.email = 'Email is required';
+    if (!password.value) errors.value.password = 'Password is required';
 
-    if (errors.value.email || errors.value.password) return
+    if (errors.value.email || errors.value.password) return;
 
     try {
         isLoading.value = true;

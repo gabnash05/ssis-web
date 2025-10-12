@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SortOrder, TableColumn } from '../types'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 
 // =========================
 // Props & Emits
@@ -10,6 +11,7 @@ const props = defineProps<{
     emptyMessage?: string
     sortBy?: string
     sortOrder?: SortOrder
+    loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -35,7 +37,7 @@ function handleHeaderClick(col: TableColumn<any>) {
 </script>
 
 <template>
-    <div class="max-h-[65vh] overflow-x-auto overflow-y-auto rounded-xl border border-white/10 bg-[#1d1d1d]/40 shadow-lg">
+    <div class="relative max-h-[65vh] overflow-x-auto overflow-y-auto rounded-xl border border-white/10 bg-[#1d1d1d]/40 shadow-lg">
         <table class="min-w-full text-sm text-left text-white">
             <thead class="bg-[#777777]/95 uppercase text-xs font-semibold sticky top-0 z-1">
                 <tr>
@@ -52,7 +54,6 @@ function handleHeaderClick(col: TableColumn<any>) {
                     >
                         <div class="flex items-center gap-1">
                             <span>{{ col.label }}</span>
-
                             <!-- Reserve icon space always -->
                             <span
                                 v-if="col.sortable"
@@ -77,13 +78,11 @@ function handleHeaderClick(col: TableColumn<any>) {
                             </span>
                         </div>
                     </th>
-
                     <!-- Actions Column Header -->
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-
-            <tbody>
+            <tbody class="relative">
                 <tr v-if="rows.length === 0" class="text-center">
                     <td
                         :colspan="columns.length + 1"
@@ -92,20 +91,23 @@ function handleHeaderClick(col: TableColumn<any>) {
                         {{ emptyMessage || 'No records found.' }}
                     </td>
                 </tr>
-
                 <tr
                     v-for="(row, rowIndex) in rows"
                     :key="rowIndex"
                     class="hover:bg-white/5 transition"
+                    :title="(Object.values(row).includes('Malik') || Object.values(row).includes('Maulana')) ? 'Flat 1 Sir Please HEHE <3' : ''"
                 >
                     <td
                         v-for="col in columns"
                         :key="col.key as string"
-                        :class="['px-4 py-3', col.class]"
+                        :class="[
+                            'px-4 py-3', 
+                            col.class, 
+                            (row[col.key] === 'Malik' || row[col.key] === 'Maulana') ? ' text-yellow-300 font-medium' : ''
+                        ]"
                     >
                         {{ row[col.key] && row[col.key] !== '' ? row[col.key] : '-' }}
                     </td>
-
                     <!-- Actions Column -->
                     <td class="px-4 py-3 text-right flex items-center justify-end gap-2">
                         <!-- Edit Button -->
@@ -127,7 +129,6 @@ function handleHeaderClick(col: TableColumn<any>) {
                                 class="absolute inset-0 m-auto w-5 h-5 filter invert opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
                             >
                         </button>
-
                         <!-- Delete Button -->
                         <button
                             class="group p-1 rounded hover:bg-white/10 transition cursor-pointer relative w-7 h-7 flex items-center justify-center"
@@ -151,6 +152,7 @@ function handleHeaderClick(col: TableColumn<any>) {
                 </tr>
             </tbody>
         </table>
+        <LoadingSkeleton v-if="loading" />
     </div>
 </template>
 
