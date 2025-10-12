@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onActivated } from 'vue'
-
+defineOptions({ name: 'CollegesView' })
+import { ref, watch, onActivated, computed } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
@@ -8,7 +8,8 @@ import AddCollegeModal from '../components/AddCollegeModal.vue'
 import EditCollegeModal from '../components/EditCollegeModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
 
-import { listColleges, createCollege, updateCollege, deleteCollege } from '../api/colleges'
+import { createCollege, updateCollege, deleteCollege } from '../api/colleges'
+import { useDataStore } from '../stores/dataStore'
 
 import type { SortOrder, College } from '../types'
 
@@ -23,7 +24,8 @@ const collegeColumns = [
 // =========================
 // Table + Pagination State
 // =========================
-const colleges = ref<College[]>([])
+const store = useDataStore()
+const colleges = computed(() => store.colleges)
 const sortBy = ref<string>(collegeColumns[0].key)
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
@@ -42,16 +44,13 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<College | null>(null)
 const addModalRef = ref<any>(null)
 const editModalRef = ref<any>(null)
-const isLoading = ref(false)
 
 // =========================
 // Fetch Programs
 // =========================
 async function fetchColleges() {
     try {
-        isLoading.value = true;
-
-        const res = await listColleges({
+        await store.fetchColleges({
             page: currentPage.value,
             page_size: pageSize.value,
             sort_by: sortBy.value,
@@ -59,28 +58,20 @@ async function fetchColleges() {
             q: searchTerm.value,
             search_by: searchBy.value,
         })
-
-        colleges.value = res.data
-
-        if (res.meta) {
-            totalPages.value = Math.max(
-                1,
-                Math.ceil(res.meta.total / res.meta.per_page)
-            );
+        if (store.meta.colleges) {
+            totalPages.value = Math.max(1, Math.ceil(store.meta.colleges.total / store.meta.colleges.per_page))
         }
     } catch (err) {
         console.error("Failed to fetch colleges:", err)
-    } finally {
-        isLoading.value = false;
     }
 }
 
 fetchColleges()
 
 watch([searchTerm, searchBy, sortBy, sortOrder], () => {
-    currentPage.value = 1;
-    fetchColleges();
-});
+    currentPage.value = 1
+    fetchColleges()
+})
 
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchColleges)
 
@@ -107,8 +98,16 @@ async function handleDelete(college: College) {
 async function handleCollegeSubmit(college: College) {
     try {
         await createCollege(college)
+        store.invalidateAll()
         showAddModal.value = false
-        await fetchColleges()
+        await store.fetchColleges({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error creating college:", err)
         if (addModalRef.value?.handleBackendErrors) {
@@ -121,9 +120,17 @@ async function handleCollegeEdit(college: College) {
     if (!recordToEdit.value) return
     try {
         await updateCollege(recordToEdit.value.college_code, college)
+        store.invalidateAll()
         showEditModal.value = false
         recordToEdit.value = null
-        await fetchColleges()
+        await store.fetchColleges({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error updating college:", err)
         // Pass the error to the modal for display
@@ -137,7 +144,15 @@ async function handleCollegeDelete() {
     if (!recordToDelete.value) return
     try {
         await deleteCollege(recordToDelete.value.college_code)
-        await fetchColleges()
+        store.invalidateAll()
+        await store.fetchColleges({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
         recordToDelete.value = null
         showConfirmDialog.value = false
     } catch (err) {
@@ -179,7 +194,7 @@ async function handleCollegeDelete() {
             :rows="colleges"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
-            :loading="isLoading"
+            :loading="store.loading.colleges"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"

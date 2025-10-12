@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onActivated } from 'vue'
+import { ref, watch, onActivated, computed } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
@@ -7,7 +7,8 @@ import AddProgramModal from '../components/AddProgramModal.vue'
 import EditProgramModal from '../components/EditProgramModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
 
-import { listPrograms, createProgram, updateProgram, deleteProgram } from '../api/programs'
+import { createProgram, updateProgram, deleteProgram } from '../api/programs'
+import { useDataStore } from '../stores/dataStore'
 
 import type { SortOrder, Program } from '../types'
 
@@ -23,7 +24,8 @@ const programColumns = [
 // =========================
 // Table + Pagination State
 // =========================
-const programs = ref<Program[]>([])
+const store = useDataStore()
+const programs = computed(() => store.programs)
 const sortBy = ref<string>(programColumns[0].key)
 const sortOrder = ref<SortOrder>('ASC')
 const searchTerm = ref('')
@@ -42,16 +44,13 @@ const showConfirmDialog = ref(false)
 const recordToDelete = ref<Program | null>(null)
 const addModalRef = ref<any>(null)
 const editModalRef = ref<any>(null)
-const isLoading = ref(false)
 
 // =========================
 // Fetch Programs
 // =========================
 async function fetchPrograms() {
     try {
-        isLoading.value = true;
-
-        const res = await listPrograms({
+        await store.fetchPrograms({
             page: currentPage.value,
             page_size: pageSize.value,
             sort_by: sortBy.value,
@@ -59,28 +58,20 @@ async function fetchPrograms() {
             q: searchTerm.value,
             search_by: searchBy.value,
         })
-
-        programs.value = res.data
-
-        if (res.meta) {
-            totalPages.value = Math.max(
-                1,
-                Math.ceil(res.meta.total / res.meta.per_page)
-            );
+        if (store.meta.programs) {
+            totalPages.value = Math.max(1, Math.ceil(store.meta.programs.total / store.meta.programs.per_page))
         }
     } catch (err) {
-        console.error("Failed to fetch programs:", err)
-    } finally {
-        isLoading.value = false;
+        console.error('Failed to fetch programs:', err)
     }
 }
 
 fetchPrograms()
 
 watch([searchTerm, searchBy, sortBy, sortOrder], () => {
-    currentPage.value = 1;
-    fetchPrograms();
-});
+    currentPage.value = 1
+    fetchPrograms()
+})
 
 watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchPrograms)
 
@@ -107,11 +98,18 @@ async function handleDelete(program: Program) {
 async function handleProgramSubmit(program: Program) {
     try {
         await createProgram(program)
+        store.invalidateAll()
         showAddModal.value = false
-        await fetchPrograms()
+        await store.fetchPrograms({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error creating program:", err)
-        // Pass the error to the modal for display
         if (addModalRef.value?.handleBackendErrors) {
             addModalRef.value.handleBackendErrors(err)
         }
@@ -122,12 +120,19 @@ async function handleProgramEdit(program: Program) {
     if (!recordToEdit.value) return
     try {
         await updateProgram(recordToEdit.value.program_code, program)
+        store.invalidateAll()
         showEditModal.value = false
         recordToEdit.value = null
-        await fetchPrograms()
+        await store.fetchPrograms({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error updating program:", err)
-        // Pass the error to the modal for display
         if (editModalRef.value?.handleBackendErrors) {
             editModalRef.value.handleBackendErrors(err)
         }
@@ -138,7 +143,15 @@ async function handleProgramDelete() {
     if (!recordToDelete.value) return
     try {
         await deleteProgram(recordToDelete.value.program_code)
-        await fetchPrograms()
+        store.invalidateAll()
+        await store.fetchPrograms({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
         recordToDelete.value = null
         showConfirmDialog.value = false
     } catch (err) {
@@ -180,7 +193,7 @@ async function handleProgramDelete() {
             :rows="programs"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
-            :loading="isLoading"
+            :loading="store.loading.programs"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"

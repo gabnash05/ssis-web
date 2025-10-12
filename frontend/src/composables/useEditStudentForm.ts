@@ -69,8 +69,6 @@ export function useEditStudentForm() {
             name: p.program_name,
             college_code: p.college_code,
         }))
-
-        console.log(programs.value)
     }
 
     function loadStudent(student: any) {

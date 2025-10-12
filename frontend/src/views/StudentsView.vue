@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onActivated } from 'vue'
+import { ref, watch, onActivated, computed } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import SearchBar from '../components/SearchBar.vue'
 import PaginationControls from '../components/PaginationControls.vue'
@@ -7,7 +7,8 @@ import AddStudentModal from '../components/AddStudentModal.vue'
 import EditStudentModal from '../components/EditStudentModal.vue'
 import ConfirmationDialog from '../components/ConfirmDialog.vue'
 
-import { createStudent, deleteStudent, listStudents, updateStudent } from '../api/students'
+import { createStudent, deleteStudent, updateStudent } from '../api/students'
+import { useDataStore } from '../stores/dataStore'
 
 import type { SortOrder, Student } from '../types'
 
@@ -27,7 +28,8 @@ const studentColumns = [
 // =========================
 // Table + Pagination State
 // =========================
-const students = ref<Student[]>([]);
+const store = useDataStore()
+const students = computed(() => store.students)
 const sortBy = ref<string>(studentColumns[0].key);
 const sortOrder = ref<SortOrder>('ASC');
 const searchTerm = ref('');
@@ -46,50 +48,39 @@ const showConfirmDialog = ref(false);
 const recordToDelete = ref<Student | null>(null);
 const addModalRef = ref<any>(null);
 const editModalRef = ref<any>(null);
-const isLoading = ref(false);
 
 // =========================
 // Fetch Students
 // =========================
 async function fetchStudents() {
     try {
-        isLoading.value = true;
-
-        const res = await listStudents({
+        await store.fetchStudents({
             page: currentPage.value,
             page_size: pageSize.value,
             sort_by: sortBy.value,
             sort_order: sortOrder.value,
             q: searchTerm.value,
             search_by: searchBy.value,
-        });
-
-        students.value = res.data;
-
-        if (res.meta) {
-            totalPages.value = Math.max(
-                1,
-                Math.ceil(res.meta.total / res.meta.per_page)
-            );
+        })
+        if (store.meta.students) {
+            totalPages.value = Math.max(1, Math.ceil(store.meta.students.total / store.meta.students.per_page))
         }
     } catch (err) {
         console.error("Failed to fetch students:", err);
-    } finally {
-        isLoading.value = false;
     }
 }
 
 fetchStudents()
 
 watch([searchTerm, searchBy, sortBy, sortOrder], () => {
-    currentPage.value = 1;
-    fetchStudents();
-});
+    currentPage.value = 1
+    fetchStudents()
+})
 
-watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents);
+watch([sortBy, sortOrder, searchTerm, searchBy, currentPage, pageSize], fetchStudents)
 
 onActivated(() => {
-    fetchStudents();
+    fetchStudents()
 })
 
 // =========================
@@ -112,11 +103,18 @@ async function handleDelete(student: Student) {
 async function handleStudentSubmit(student: Student) {
     try {
         await createStudent(student);
+        store.invalidateAll()
         showAddModal.value = false;
-        await fetchStudents();
+        await store.fetchStudents({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error creating student:", err);
-        // Pass the error to the modal for display
         if (addModalRef.value?.handleBackendErrors) {
             addModalRef.value.handleBackendErrors(err);
         }
@@ -127,12 +125,19 @@ async function handleStudentEdit(student: Student) {
     if (!recordToEdit.value) return;
     try {
         await updateStudent(recordToEdit.value.id_number, student);
+        store.invalidateAll()
         showEditModal.value = false;
         recordToEdit.value = null;
-        await fetchStudents();
+        await store.fetchStudents({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
     } catch (err: any) {
         console.error("Error updating student:", err);
-        // Pass the error to the modal for display
         if (editModalRef.value?.handleBackendErrors) {
             editModalRef.value.handleBackendErrors(err);
         }
@@ -143,7 +148,15 @@ async function handleStudentDelete() {
     if (!recordToDelete.value) return;
     try {
         await deleteStudent(recordToDelete.value.id_number);
-        await fetchStudents();
+        store.invalidateAll();
+        await store.fetchStudents({
+            page: currentPage.value,
+            page_size: pageSize.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            q: searchTerm.value,
+            search_by: searchBy.value,
+        }, true)
         recordToDelete.value = null;
         showConfirmDialog.value = false;
     } catch (err) {
@@ -185,7 +198,7 @@ async function handleStudentDelete() {
             :rows="students"
             :sortBy="sortBy"
             :sortOrder="sortOrder"
-            :loading="isLoading"
+            :loading="store.loading.students"
             @update:sortBy="sortBy = $event"
             @update:sortOrder="sortOrder = $event"
             @edit="handleEdit"
