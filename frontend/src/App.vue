@@ -15,7 +15,7 @@ const layout = computed(() => {
 <template>
     <component 
         :is="layout"
-        :current-page="route?.name ?? 'LOGIN'"
+        :current-page="typeof route?.name === 'string' ? route.name : (route?.name?.toString?.() ?? 'LOGIN')"
         @change-page="(page: string) => $router.push({ name: page })"
     >
         <router-view v-slot="{ Component }">

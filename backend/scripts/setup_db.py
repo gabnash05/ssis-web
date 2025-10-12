@@ -1,3 +1,17 @@
+"""
+This Python script automates the complete setup and configuration of the application database using PostgreSQL. 
+It performs a two-phase initialization process to ensure proper database structure and permissions.
+
+Purpose
+- Creates and configures a PostgreSQL database for the SSIS (Student Information System) web application
+- Executes SQL scripts in the correct sequence to establish database schem
+- Sets up necessary users, permissions, and table structures
+
+Run with:
+    python scripts/setup_db.py
+    
+This script should be run from the backend directory.
+"""
 import os
 import subprocess
 from dotenv import load_dotenv

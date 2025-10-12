@@ -8,6 +8,10 @@ export default defineConfig({
         vue(),
         tailwindcss(),
     ],
+    base: "/static/",
+    build: {
+        outDir: '../backend/dist',
+    },
     server: {
         port: 5173,
         proxy: {
