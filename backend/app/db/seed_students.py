@@ -3,9 +3,15 @@ THIS IS A SAMPLE SCRIPT TO SEED THE DATABASE WITH STUDENTS, PROGRAMS, AND COLLEG
 Adjust the data and logic as needed to fit your actual database schema and requirements.
 """
 
+import os
+import sys
 import random
 from flask import Flask
-from app.db.database import execute_sql  # adjust import to your actual module path
+
+# Fix Python path - add this at the top
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from app.db.database import execute_sql
 
 # ========== SAMPLE DATA ==========
 first_names = [
