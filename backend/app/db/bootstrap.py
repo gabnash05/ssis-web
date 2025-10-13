@@ -1,5 +1,6 @@
 from pathlib import Path
 from .database import execute_sql
+from werkzeug.security import generate_password_hash
 
 def bootstrap_schema_if_needed() -> None:
     """
@@ -39,6 +40,41 @@ def bootstrap_schema_if_needed() -> None:
         for i, statement in enumerate(statements, 1):
             print(f"  Executing statement {i}/{len(statements)}...")
             execute_sql(statement)
+
+        # Create default admin user with proper password hash
+        print("  Creating default admin user...")
+        
+        # Generate proper password hash for "admin"
+        password_hash = generate_password_hash("admin")
+        
+        # Insert admin user
+        execute_sql(
+            """
+            INSERT INTO users (username, email, password_hash, role)
+            VALUES (:username, :email, :password_hash, :role)
+            ON CONFLICT (username) DO NOTHING
+            """,
+            {
+                "username": "admin",
+                "email": "admin@gmail.com", 
+                "password_hash": password_hash,
+                "role": "admin"
+            }
+        )
+        
+        # Verify the user was created
+        admin_check = execute_sql(
+            "SELECT user_id, username, role FROM users WHERE username = 'admin'"
+        )
+        
+        if admin_check and admin_check.scalar():
+            print("[✓] Default admin user created successfully")
+            print("    Username: admin")
+            print("    Password: admin")
+            print("    Email: admin@gmail.com")
+            print("    Role: admin")
+        else:
+            print("[!] Admin user may not have been created (possibly already exists)")
 
         print("[✓] Database schema bootstrap completed successfully")
 
