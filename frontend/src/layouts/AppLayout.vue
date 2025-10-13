@@ -51,26 +51,20 @@ const availableTabs = ref([
 ])
 
 const tabs = computed(() => {
-    console.log('🔄 Computing tabs, isAdmin:', isAdmin.value)
-    
     const baseTabs = [...availableTabs.value]
     
     if (isAdmin.value) {
         // Check if Users tab already exists to avoid duplicates
         if (!baseTabs.find(tab => tab.page === 'USERS')) {
             baseTabs.push({ id: 3, page: 'USERS' as ApplicationPage, icon: 'circle-user', label: 'Users' })
-            console.log('➕ Added Users tab')
         }
     } else {
         // Remove Users tab if not admin
         const usersIndex = baseTabs.findIndex(tab => tab.page === 'USERS')
         if (usersIndex > -1) {
             baseTabs.splice(usersIndex, 1)
-            console.log('➖ Removed Users tab')
         }
     }
-    
-    console.log('📋 Final tabs:', baseTabs.map(t => t.label))
     return baseTabs
 })
 

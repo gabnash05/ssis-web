@@ -87,9 +87,13 @@ def update_user(user_id: int, updates: Dict[str, Any]) -> Dict[str, Any]:
                 "error_code": "USER_NOT_FOUND"
             }
 
+        # Explicitly prevent password updates
         if "password" in updates:
-            user.set_password(updates["password"])
             updates.pop("password", None)
+
+        # Only allow safe editable fields
+        editable_fields = {"username", "email", "role"}
+        updates = {k: v for k, v in updates.items() if k in editable_fields}
 
         for key, value in updates.items():
             if hasattr(user, key):
