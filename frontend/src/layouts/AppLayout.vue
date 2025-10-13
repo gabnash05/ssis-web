@@ -35,26 +35,58 @@ onMounted(async () => {
     }
 })
 
+const isAdmin = computed(() => {
+    const user = userStore.currentUser
+    console.log('Current user:', user) // Debug log
+    return user?.role === 'admin'
+})
+
 // =========================
 // Tab Logic
 // =========================
-const tabPositions = [0, 1, 2] // 0: Students, 1: Programs, 2: Colleges
-const selectedTab = computed(() => {
-    switch (props.currentPage) {
-        case 'STUDENTS': return 0
-        case 'PROGRAMS': return 1
-        case 'COLLEGES': return 2
-        default: return 0
+const availableTabs = ref([
+    { id: 0, page: 'STUDENTS' as ApplicationPage, icon: 'student', label: 'Students' },
+    { id: 1, page: 'PROGRAMS' as ApplicationPage, icon: 'close-book', label: 'Programs' },
+    { id: 2, page: 'COLLEGES' as ApplicationPage, icon: 'school', label: 'Colleges' }
+])
+
+const tabs = computed(() => {
+    console.log('🔄 Computing tabs, isAdmin:', isAdmin.value)
+    
+    const baseTabs = [...availableTabs.value]
+    
+    if (isAdmin.value) {
+        // Check if Users tab already exists to avoid duplicates
+        if (!baseTabs.find(tab => tab.page === 'USERS')) {
+            baseTabs.push({ id: 3, page: 'USERS' as ApplicationPage, icon: 'circle-user', label: 'Users' })
+            console.log('➕ Added Users tab')
+        }
+    } else {
+        // Remove Users tab if not admin
+        const usersIndex = baseTabs.findIndex(tab => tab.page === 'USERS')
+        if (usersIndex > -1) {
+            baseTabs.splice(usersIndex, 1)
+            console.log('➖ Removed Users tab')
+        }
     }
+    
+    console.log('📋 Final tabs:', baseTabs.map(t => t.label))
+    return baseTabs
+})
+
+const selectedTab = computed(() => {
+    const tab = tabs.value.find(tab => tab.page === props.currentPage)
+    return tab ? tab.id : 0
 })
 
 const highlightPosition = computed(() => `${selectedTab.value * 3.5}rem`)
 const highlightWidth = computed(() => (sidebarOpen.value ? '11rem' : '2.5rem'))
 
-function selectTab(index: number) {
-    const page: ApplicationPage =
-        index === 0 ? 'STUDENTS' : index === 1 ? 'PROGRAMS' : 'COLLEGES'
-    emit('change-page', page)
+function selectTab(tabId: number) {
+    const tab = tabs.value.find(t => t.id === tabId)
+    if (tab) {
+        emit('change-page', tab.page)
+    }
 }
 
 function toggleSidebar() {
@@ -69,6 +101,20 @@ function toggleSidebar() {
             showLabels.value = true
         }, 250)
     }
+}
+
+// Icon mapping to fix dynamic imports
+const iconMap: Record<string, string> = {
+    'student': new URL('../assets/icons/student.svg', import.meta.url).href,
+    'close-book': new URL('../assets/icons/close-book.svg', import.meta.url).href,
+    'school': new URL('../assets/icons/school.svg', import.meta.url).href,
+    'circle-user': new URL('../assets/icons/circle-user.svg', import.meta.url).href,
+    'chevron-right': new URL('../assets/icons/chevron-right.svg', import.meta.url).href,
+    'chevron-left': new URL('../assets/icons/chevron-left.svg', import.meta.url).href,
+}
+
+function getIconPath(iconName: string): string {
+    return iconMap[iconName] || ''
 }
 </script>
 
@@ -87,7 +133,7 @@ function toggleSidebar() {
             <!-- Sidebar -->
             <nav
                 id="sidebar"
-                class="relative flex flex-col h-full justify-between gap-[35vh] bg-[#1d1d1d] rounded-xl p-4 transition-all duration-300 ease-in-out overflow-hidden"
+                class="relative flex flex-col h-full justify-between gap-[30vh] bg-[#1d1d1d] rounded-xl p-4 transition-all duration-300 ease-in-out overflow-hidden"
                 :class="sidebarOpen ? 'w-52' : 'w-18'"
             >
                 <div class="flex flex-col gap-5 w-full">
@@ -107,14 +153,14 @@ function toggleSidebar() {
                                 <img
                                     v-if="!sidebarOpen"
                                     key="chevron-right"
-                                    src="../assets/icons/chevron-right.svg"
+                                    :src="getIconPath('chevron-right')"
                                     alt="Open Sidebar"
                                     class="w-5 h-5 filter invert"
                                 >
                                 <img
                                     v-else
                                     key="chevron-left"
-                                    src="../assets/icons/chevron-left.svg"
+                                    :src="getIconPath('chevron-left')"
                                     alt="Close Sidebar"
                                     class="w-5 h-5 filter invert"
                                 >
@@ -135,35 +181,22 @@ function toggleSidebar() {
 
                         <!-- Tab buttons -->
                         <div
-                            v-for="(_, index) in tabPositions"
-                            :key="index"
+                            v-for="tab in tabs"
+                            :key="tab.id"
                             class="relative flex items-center gap-3 cursor-pointer w-full h-10 rounded-md transition-all duration-300 hover:bg-white/5"
                             :class="sidebarOpen ? 'pl-2' : 'pl-[6px]'"
-                            @click="selectTab(index)"
+                            @click="selectTab(tab.id)"
                         >
                             <img
-                                v-if="index === 0"
-                                src="../assets/icons/student.svg"
-                                alt="Students"
+                                :src="getIconPath(tab.icon)"
+                                :alt="tab.label"
                                 class="w-6 h-6 filter invert"
-                            >
-                            <img
-                                v-else-if="index === 1"
-                                src="../assets/icons/close-book.svg"
-                                alt="Programs"
-                                class="w-6 h-6 filter invert"
-                            >
-                            <img
-                                v-else
-                                src="../assets/icons/school.svg"
-                                alt="Colleges"
-                                class="w-6 h-6 filter invert"
-                            >
+                            />
 
                             <!-- Tab Labels -->
                             <transition name="fade">
                                 <span v-if="showLabels" class="text-white text-sm whitespace-nowrap">
-                                    {{ index === 0 ? 'Students' : index === 1 ? 'Programs' : 'Colleges' }}
+                                    {{ tab.label }}
                                 </span>
                             </transition>
                         </div>
@@ -176,11 +209,11 @@ function toggleSidebar() {
                     :class="sidebarOpen ? 'pl-2' : 'justify-center'"
                     @click="userStore.showUserModal = true"
                 >
-                    <img src="../assets/icons/circle-user.svg" class="w-10 h-10 rounded-full p-1 filter invert" />
+                    <img :src="getIconPath('circle-user')" class="w-10 h-10 rounded-full p-1 filter invert" />
                     <transition name="fade">
-                        <div v-if="showLabels" class="flex flex-col text-white text-sm min-w-0 flex-1"> <!-- Added min-w-0 and flex-1 -->
-                            <span class="truncate">{{ userStore.currentUser?.username || 'User' }}</span> <!-- Added truncate -->
-                            <span class="text-xs text-white/60 truncate">{{ userStore.currentUser?.email || 'No email' }}</span> <!-- Added truncate -->
+                        <div v-if="showLabels" class="flex flex-col text-white text-sm min-w-0 flex-1">
+                            <span class="truncate">{{ userStore.currentUser?.username || 'User' }}</span>
+                            <span class="text-xs text-white/60 truncate">{{ userStore.currentUser?.email || 'No email' }}</span>
                         </div>
                     </transition>
                 </div>

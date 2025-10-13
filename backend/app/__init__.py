@@ -53,12 +53,14 @@ def create_app() -> Flask:
     from .programs.routes import bp as programs_bp
     from .colleges.routes import bp as colleges_bp
     from .auth.routes import bp as auth_bp
+    from .users.routes import bp as users_bp
 
     base = app.config["API_PREFIX"]
     app.register_blueprint(auth_bp, url_prefix=f"{base}/auth")
     app.register_blueprint(colleges_bp, url_prefix=f"{base}/colleges")
     app.register_blueprint(programs_bp, url_prefix=f"{base}/programs")
     app.register_blueprint(students_bp, url_prefix=f"{base}/students")
+    app.register_blueprint(users_bp, url_prefix=f"{base}/users")
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')

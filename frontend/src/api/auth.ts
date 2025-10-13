@@ -1,7 +1,7 @@
 import { apiClient } from "./index";
 
-export async function signup(username: string, email: string, password: string, role: string = "admin") {
-    return apiClient.post("/auth/signup", { username, email, password, role });
+export async function signup(username: string, email: string, password: string) {
+    return apiClient.post("/auth/signup", { username, email, password });
 }
 
 export async function login(email: string, password: string) {

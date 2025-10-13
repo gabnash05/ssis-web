@@ -23,7 +23,7 @@ export interface User {
     user_id: number;
     username: string;
     email: string;
-    role: string;           // Could be "admin" | "staff" | "student" if strict enum
+    role: string;           // Could be "admin" | or "member"
 }
 
 // Auxiliary Types
@@ -58,4 +58,4 @@ export interface QueryParams {
 export type SortOrder = "ASC" | "DESC";
 export type Gender = "MALE" | "FEMALE" | "OTHER";
 
-export type ApplicationPage = "STUDENTS" | "PROGRAMS" | "COLLEGES";
+export type ApplicationPage = "STUDENTS" | "PROGRAMS" | "COLLEGES" | "USERS";

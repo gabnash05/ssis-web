@@ -20,7 +20,7 @@ const layout = computed(() => {
     >
         <router-view v-slot="{ Component }">
             <transition name="fade-slide" mode="out-in">
-                <keep-alive include="StudentsView,ProgramsView,CollegesView">
+                <keep-alive include="StudentsView,ProgramsView,CollegesView,UsersView">
                     <component :is="Component" />
                 </keep-alive>
             </transition>

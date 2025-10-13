@@ -19,7 +19,7 @@ def signup():
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
-        role = data.get("role")
+        role = "user"  # Default role for new signups
 
         if not username or not email or not password:
             return make_response({

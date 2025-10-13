@@ -10,7 +10,8 @@ const props = defineProps<{
     message?: string
     confirmText?: string
     cancelText?: string
-    confirmVariant?: 'primary' | 'danger' | 'success' 
+    confirmVariant?: 'primary' | 'danger' | 'success'
+    disableConfirm?: boolean  // new prop
 }>()
 
 const emit = defineEmits<{
@@ -89,6 +90,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
                                 'bg-red-500 hover:bg-red-600': confirmVariant === 'danger',
                                 'bg-green-500 hover:bg-green-600': confirmVariant === 'success'
                             }"
+                            :disabled="disableConfirm"
                         >
                             {{ confirmText || 'Confirm' }}
                         </button>

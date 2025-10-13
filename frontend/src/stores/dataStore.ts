@@ -2,34 +2,40 @@ import { defineStore } from 'pinia'
 import { listStudents } from '../api/students'
 import { listPrograms } from '../api/programs'
 import { listColleges } from '../api/colleges'
+import { listUsers } from '../api/users'
 
 export const useDataStore = defineStore('data', {
     state: () => ({
         students: [] as any[],
         programs: [] as any[],
         colleges: [] as any[],
+        users: [] as any[],
         // meta returned by paginated endpoints
         meta: {
             students: null as any | null,
             programs: null as any | null,
             colleges: null as any | null,
+            users: null as any | null,
         },
         // last params used to fetch each resource
         params: {
             students: {} as Record<string, any>,
             programs: {} as Record<string, any>,
             colleges: {} as Record<string, any>,
+            users: {} as Record<string, any>,
         },
         // per-resource loading state
         loading: {
             students: false,
             programs: false,
             colleges: false,
+            users: false,
         },
         loaded: {
             students: false,
             programs: false,
             colleges: false,
+            users: false,
         },
         version: 0,
     }),
@@ -40,6 +46,7 @@ export const useDataStore = defineStore('data', {
                 this.fetchStudents(paramsMap.students || {}, force),
                 this.fetchPrograms(paramsMap.programs || {}, force),
                 this.fetchColleges(paramsMap.colleges || {}, force),
+                this.fetchUsers(paramsMap.users || {}, force),
             ])
         },
         async fetchStudents(params: Record<string, any> = {}, force = false) {
@@ -87,6 +94,21 @@ export const useDataStore = defineStore('data', {
                 }
             }
         },
+        async fetchUsers(params: Record<string, any> = {}, force = false) {
+            const sameParams = JSON.stringify(this.params.users) === JSON.stringify(params)
+            if (!this.loaded.users || force || !sameParams) {
+                try {
+                    this.loading.users = true
+                    const res = await listUsers(params)
+                    this.users = res.data || []
+                    this.meta.users = res.meta || null
+                    this.params.users = params
+                    this.loaded.users = true
+                } finally {
+                    this.loading.users = false
+                }
+            }
+        },
         // helper mutators for local updates (useful for optimistic UI)
         addStudent(item: any) {
             this.students.unshift(item)
@@ -122,10 +144,11 @@ export const useDataStore = defineStore('data', {
             this.loaded.students = false
             this.loaded.programs = false
             this.loaded.colleges = false
+            this.loaded.users = false
             this.bumpVersion()
         },
 
-        invalidate(type: 'students' | 'programs' | 'colleges') {
+        invalidate(type: 'students' | 'programs' | 'colleges' | 'users') {
             this.loaded[type] = false
             this.bumpVersion()
         },

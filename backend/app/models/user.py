@@ -217,6 +217,16 @@ class User(BaseModel):
         
         row = result.mappings().first() if result else None
         return cls.from_dict(dict(row)) if row else None
+
+    @classmethod
+    def get_all(cls) -> list['User']:
+        """Get all users."""
+        instance = cls()
+        result = instance._execute_query(
+            "SELECT user_id, username, email, role FROM users ORDER BY user_id ASC"
+        )
+        rows = result.mappings().all() if result else []
+        return [cls.from_dict(dict(row)) for row in rows]
     
     @classmethod
     def find_by_username(cls, username: str) -> Optional['User']:
