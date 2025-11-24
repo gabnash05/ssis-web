@@ -29,7 +29,7 @@ const {
     loadCollege,
     handleSubmit,
     handleBackendErrors,
-} = useEditCollegeForm(emit)
+} = useEditCollegeForm()
 
 // =========================
 // Confirmation Dialog State and Methods

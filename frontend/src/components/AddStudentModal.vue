@@ -2,6 +2,7 @@
 import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import StudentAvatarUploader from './StudentAvatarUploader.vue'
 import { useAddStudentForm } from '../composables/useAddStudentForm'
 
 // =========================
@@ -19,13 +20,17 @@ const {
     college_code,
     colleges,
     filteredPrograms,
+    avatarFile,
     generalError,
     handleSubmit,
     handleIdInput,
     resetForm,
     fetchInitialData,
     handleBackendErrors,
-} = useAddStudentForm(emit)
+    requestAvatarUpload, // Add these functions
+    uploadToSupabase,
+    finalizeAvatar,
+} = useAddStudentForm()
 
 // =========================
 // Confirmation Dialog State
@@ -59,9 +64,12 @@ function cancelSubmit() {
 
 // Expose the handleBackendErrors function for parent components
 defineExpose({
-    handleBackendErrors
+    handleBackendErrors,
+    requestAvatarUpload,
+    uploadToSupabase,
+    finalizeAvatar,
+    avatarFile
 })
-
 // =========================
 // Watch for Modal Open
 // =========================
@@ -88,7 +96,12 @@ watch(
             Fill out the student's information below.
         </p>
 
-        <div class="flex flex-col gap-4">
+        <div class="max-h-[65vh] overflow-y-auto pr-2 flex flex-col gap-4">
+
+            <StudentAvatarUploader
+                v-model="avatarFile"
+            />
+            
             <!-- ID Number -->
             <div>
                 <label class="block text-xs text-white/70 mb-1">

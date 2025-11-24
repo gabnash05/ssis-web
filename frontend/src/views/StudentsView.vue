@@ -102,9 +102,33 @@ async function handleDelete(student: Student) {
 
 async function handleStudentSubmit(student: Student) {
     try {
-        await createStudent(student);
-        store.invalidateAll()
+        const { data: createdStudent } = await createStudent(student);
+
+        if (addModalRef.value?.avatarFile) {
+            try {
+                const uploadInfo = await addModalRef.value.requestAvatarUpload(
+                    createdStudent.data.id_number,
+                    addModalRef.value.avatarFile
+                );
+
+                await addModalRef.value.uploadToSupabase(uploadInfo.upload_url, addModalRef.value.avatarFile);
+                await addModalRef.value.finalizeAvatar(createdStudent.data.id_number, uploadInfo.avatar_path);
+                
+                addModalRef.value.clearWarnings?.();
+                
+            } catch (avatarError) {
+                console.error("Avatar upload failed but student was created:", avatarError);
+                if (addModalRef.value?.showAvatarWarning) {
+                    addModalRef.value.showAvatarWarning(
+                        'Student was created successfully, but avatar upload failed. You can update the avatar later.'
+                    );
+                }
+            }
+        }
+
+        store.invalidateAll();
         showAddModal.value = false;
+
         await store.fetchStudents({
             page: currentPage.value,
             page_size: pageSize.value,
@@ -112,7 +136,8 @@ async function handleStudentSubmit(student: Student) {
             sort_order: sortOrder.value,
             q: searchTerm.value,
             search_by: searchBy.value,
-        }, true)
+        }, true);
+
     } catch (err: any) {
         console.error("Error creating student:", err);
         if (addModalRef.value?.handleBackendErrors) {

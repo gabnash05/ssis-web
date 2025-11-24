@@ -136,6 +136,7 @@ export const useDataStore = defineStore('data', {
         removeCollegeFromStore(code: string) {
             this.colleges = this.colleges.filter((c: any) => c.college_code !== code)
         },
+
         bumpVersion() {
             this.version++
         },

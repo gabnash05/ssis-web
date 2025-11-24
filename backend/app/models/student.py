@@ -12,13 +12,15 @@ class Student(BaseModel):
     ALLOWED_GENDERS = {"MALE", "FEMALE", "OTHER"}
     
     def __init__(self, id_number: str = "", first_name: str = "", last_name: str = "", 
-                 year_level: Optional[int] = None, gender: str = "", program_code: str = ""):
+                 year_level: Optional[int] = None, gender: str = "", program_code: str = "",
+                 photo_path: str = ""):
         self.id_number = id_number
         self.first_name = first_name
         self.last_name = last_name
         self.year_level = year_level
         self.gender = gender
         self.program_code = program_code
+        self.photo_path = ""
     
     @property
     def table_name(self) -> str:
@@ -36,7 +38,8 @@ class Student(BaseModel):
             "last_name": self.last_name,
             "year_level": self.year_level,
             "gender": self.gender,
-            "program_code": self.program_code
+            "program_code": self.program_code,
+            "photo_path": self.photo_path
         }
     
     @classmethod
@@ -48,7 +51,8 @@ class Student(BaseModel):
             last_name=data.get("last_name", ""),
             year_level=data.get("year_level"),
             gender=data.get("gender", ""),
-            program_code=data.get("program_code", "")
+            program_code=data.get("program_code", ""),
+            photo_path=data.get("photo_path", "")
         )
     
     def validate(self) -> None:
@@ -123,8 +127,8 @@ class Student(BaseModel):
         
         result = self._execute_query(
             """
-            INSERT INTO students (id_number, first_name, last_name, year_level, gender, program_code)
-            VALUES (:id_number, :first_name, :last_name, :year_level, :gender, :program_code)
+            INSERT INTO students (id_number, first_name, last_name, year_level, gender, program_code, photo_path)
+            VALUES (:id_number, :first_name, :last_name, :year_level, :gender, :program_code, :photo_path)
             """,
             {
                 "id_number": self.id_number,
@@ -132,7 +136,8 @@ class Student(BaseModel):
                 "last_name": self.last_name,
                 "year_level": self.year_level,
                 "gender": self.gender,
-                "program_code": self.program_code
+                "program_code": self.program_code,
+                "photo_path": self.photo_path
             }
         )
         
@@ -146,7 +151,7 @@ class Student(BaseModel):
     
     def update(self, updates: Dict[str, Any]) -> 'Student':
         """Update student with new data."""
-        allowed_fields = {"id_number", "first_name", "last_name", "year_level", "gender", "program_code"}
+        allowed_fields = {"id_number", "first_name", "last_name", "year_level", "gender", "program_code", "photo_path"}
         set_items = []
         params = {"orig_id_number": self.id_number}
         

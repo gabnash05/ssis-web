@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { listColleges } from '../api/colleges'
 
-export function useAddProgramForm(emit: any) {
+export function useAddProgramForm() {
 // =========================
 // State
 // =========================

@@ -20,7 +20,7 @@ const {
     handleSubmit,
     resetForm,
     handleBackendErrors,
-} = useAddCollegeForm(emit)
+} = useAddCollegeForm()
 
 // =========================
 // Confirmation Dialog State

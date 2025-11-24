@@ -13,6 +13,7 @@ python-dotenv = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 flask-jwt-extended = "*"
+supabase = "*"
 
 [dev-packages]
 flask-cors = "*"

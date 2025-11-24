@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{ currentPage: string }>()
-const emit = defineEmits<{ (e: 'changePage', page: string): void }>()
+defineEmits<{ (e: 'changePage', page: string): void }>()
 </script>
 
 <template>

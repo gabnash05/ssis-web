@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { listColleges } from '../api/colleges'
 import type { Program } from '../types'
 
-export function useEditProgramForm(emit: any) {
+export function useEditProgramForm() {
 // =========================
 // State
 // =========================

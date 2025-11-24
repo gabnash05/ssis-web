@@ -113,7 +113,8 @@ def create_student(data: Dict[str, Any]) -> Dict[str, Any]:
             last_name=data.get("last_name", ""),
             year_level=data.get("year_level"),
             gender=data.get("gender", ""),
-            program_code=data.get("program_code", "")
+            program_code=data.get("program_code", ""),
+            photo_path=data.get("photo_path", "")
         )
         saved_student = student.save()
         

@@ -22,7 +22,7 @@ const {
     resetForm,
     fetchInitialData,
     handleBackendErrors,
-} = useAddProgramForm(emit)
+} = useAddProgramForm()
 
 // =========================
 // Confirmation Dialog State

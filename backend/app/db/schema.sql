@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS students (
     last_name VARCHAR(50) NOT NULL,
     year_level INT CHECK (year_level BETWEEN 1 AND 5),
     gender VARCHAR(10) CHECK (gender IN ('MALE','FEMALE','OTHER')),
-    program_code VARCHAR(20) REFERENCES programs(program_code) ON DELETE SET NULL ON UPDATE CASCADE
+    program_code VARCHAR(20) REFERENCES programs(program_code) ON DELETE SET NULL ON UPDATE CASCADE,
+    photo_path TEXT;
 );
   

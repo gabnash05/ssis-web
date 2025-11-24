@@ -1,7 +1,11 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 from typing import Dict, Any
+import logging
+import os
+import uuid
 from ..utils.route_utils import make_response
+from ..supabase_client import supabase
 from .services import (
     search_students,
     get_student,
@@ -13,7 +17,7 @@ from .services import (
 )
 
 bp = Blueprint("students", __name__)
-
+bucket = os.environ.get("SUPABASE_BUCKET_NAME", "ssis_web_bucket")
 
 @bp.get("/")
 @jwt_required()
@@ -201,6 +205,154 @@ def delete_student_route(id_number: str):
                 "details": result.get("details", {})
             }, status_code)
             
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
+
+
+@bp.post("/<id_number>/avatar/photo-upload-url")
+@jwt_required()
+def get_signed_upload_url(id_number: str):
+    """Generate signed upload URL for student avatar"""
+    try:
+        data = request.get_json() or {}
+        filename = data.get("filename")
+        content_type = data.get("content_type", "image/jpeg")
+
+        if not filename:
+            return make_response({
+                "status": "error",
+                "message": "Filename is required",
+                "error_code": "MISSING_FILENAME"
+            }, 400)
+
+        # Validate content type
+        allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]
+        if content_type not in allowed_types:
+            return make_response({
+                "status": "error",
+                "message": f"Invalid content type. Allowed: {', '.join(allowed_types)}",
+                "error_code": "INVALID_CONTENT_TYPE"
+            }, 400)
+        
+        student_result = get_student(id_number)
+        if not student_result["success"]:
+            return make_response({
+                "status": "error",
+                "message": "Student not found",
+                "error_code": "STUDENT_NOT_FOUND"
+            }, 404)
+        
+        file_extension = filename.split('.')[-1] if '.' in filename else 'jpg'
+        object_path = f"avatars/{id_number}/{uuid.uuid4()}.{file_extension}"
+        
+        response = supabase.storage.from_(bucket).create_signed_upload_url(
+            object_path,
+        )
+        
+        if "error" in response or "statusCode" in response:
+            return make_response({
+                "status": "error",
+                "message": f"Failed to generate upload URL: {response}",
+                "error_code": "UPLOAD_URL_ERROR"
+            }, 500)
+            
+        # Return direct data structure expected by frontend
+        return make_response({
+            "upload_url": response.get("signedURL") or response.get("signedUrl"),
+            "avatar_path": object_path,
+            "expires_in": 3600
+        }, 200)
+        
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
+
+
+@bp.post("/<id_number>/avatar/confirm")
+@jwt_required()
+def confirm_avatar_upload(id_number: str):
+    """Confirm avatar upload and update student record"""
+    try:
+        data = request.get_json() or {}
+        avatar_path = data.get("avatar_path")
+        
+        if not avatar_path:
+            return make_response({
+                "status": "error",
+                "message": "Avatar path is required",
+                "error_code": "MISSING_AVATAR_PATH"
+            }, 400)
+        
+        result = update_student(id_number, {"photo_path": avatar_path})
+        
+        if result["success"]:
+            # Return direct student data expected by frontend
+            return make_response(result["data"], 200)
+        else:
+            status_code = 400
+            if result["error_code"] == "STUDENT_NOT_FOUND":
+                status_code = 404
+            
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"]
+            }, status_code)
+            
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
+
+
+@bp.get("/<id_number>/avatar/url")
+@jwt_required()
+def get_avatar_url(id_number: str):
+    """Get signed URL for viewing student avatar"""
+    try:
+        student_result = get_student(id_number)
+        if not student_result["success"]:
+            return make_response({
+                "status": "error",
+                "message": "Student not found",
+                "error_code": "STUDENT_NOT_FOUND"
+            }, 404)
+        
+        student_data = student_result["data"]
+        avatar_path = student_data.get("photo_path")
+        
+        if not avatar_path:
+            # Return structure expected by frontend
+            return make_response({"avatar_url": None}, 200)
+        
+        # Generate signed URL for viewing (5 minute expiry)
+        response = supabase.storage.from_(bucket).create_signed_url(
+            avatar_path,
+            300
+        )
+        
+        if hasattr(response, 'error') and response.error:
+            return make_response({
+                "status": "error",
+                "message": f"Failed to generate avatar URL: {response.error.message}",
+                "error_code": "AVATAR_URL_ERROR"
+            }, 500)
+        
+        # Return direct data structure expected by frontend
+        return make_response({
+            "avatar_url": response.get("signedURL") or response.get("signedUrl"),
+            "expires_in": 300
+        }, 200)
+        
     except Exception as e:
         return make_response({
             "status": "error", 

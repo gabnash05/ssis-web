@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import type { College } from '../types'
 
-export function useEditCollegeForm(emit: any) {
+export function useEditCollegeForm() {
 // =========================
 // State
 // =========================

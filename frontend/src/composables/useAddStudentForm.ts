@@ -1,8 +1,14 @@
 import { ref, watch } from 'vue'
 import { listColleges } from '../api/colleges'
 import { listPrograms } from '../api/programs'
+import {
+    getPhotoUploadUrl,
+    confirmAvatarUpload,
+    getAvatarUrl,
+    deleteAvatar
+} from "../api/students";
 
-export function useAddStudentForm(emit: any) {
+export function useAddStudentForm() {
 // =========================
 // State
 // =========================
@@ -13,6 +19,7 @@ export function useAddStudentForm(emit: any) {
         year_level: 1,
         gender: 'FEMALE',
         program_code: '',
+        photo_path: '',
     })
 
     const errors = ref({
@@ -25,6 +32,7 @@ export function useAddStudentForm(emit: any) {
         program_code: '',
     })
 
+    const avatarFile = ref<File | null>(null);
     const colleges = ref<{ code: string; name: string }[]>([])
     const programs = ref<{ code: string; name: string; college_code: string }[]>([])
     const filteredPrograms = ref<{ code: string; name: string }[]>([])
@@ -43,9 +51,11 @@ export function useAddStudentForm(emit: any) {
             year_level: 1,
             gender: 'FEMALE',
             program_code: '',
+            photo_path: '',
         })
         college_code.value = ''
         filteredPrograms.value = []
+        avatarFile.value = null;
 
         resetErrors()
     }
@@ -136,6 +146,63 @@ export function useAddStudentForm(emit: any) {
         input.value = value
     }
 
+    function setAvatar(file: File | null) {
+        avatarFile.value = file;
+    }
+
+    // Avatar API methods
+    async function requestAvatarUpload(id_number: string, file: File) {
+        const uploadInfo = await getPhotoUploadUrl(
+            id_number,
+            file.name,
+            file.type
+        );
+
+        return uploadInfo;
+    }
+
+    async function uploadToSupabase(upload_url: string, file: File) {
+        await fetch(upload_url, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+        });
+    }
+
+    async function finalizeAvatar(id_number: string, avatar_path: string) {
+        const res = await confirmAvatarUpload(id_number, avatar_path);
+        return res;
+    }
+
+    async function fetchAvatarUrl(id_number: string) {
+        return await getAvatarUrl(id_number);
+    }
+
+    async function removeAvatar(id_number: string) {
+        const res = await deleteAvatar(id_number);
+        return res;
+    }
+
+    // Add method to handle avatar upload and get photo_path
+    async function uploadAvatarAndGetPath(id_number: string): Promise<string | null> {
+        if (!avatarFile.value) return null;
+
+        try {
+            const uploadInfo = await requestAvatarUpload(
+                id_number,
+                avatarFile.value
+            );
+
+            await uploadToSupabase(uploadInfo.upload_url, avatarFile.value);
+            await finalizeAvatar(id_number, uploadInfo.avatar_path);
+            
+            return uploadInfo.avatar_path;
+        } catch (error) {
+            console.error('Failed to upload avatar:', error);
+            throw error;
+        }
+    }
+
     watch(college_code, (code) => {
         filteredPrograms.value = programs.value.filter((p) => p.college_code === code)
 
@@ -151,11 +218,19 @@ export function useAddStudentForm(emit: any) {
         colleges,
         programs,
         filteredPrograms,
+        avatarFile,
         generalError,
         resetForm,
         fetchInitialData,
         handleSubmit,
         handleIdInput,
         handleBackendErrors,
+        setAvatar,
+        uploadAvatarAndGetPath,
+        requestAvatarUpload,
+        uploadToSupabase,
+        finalizeAvatar,
+        fetchAvatarUrl,
+        removeAvatar,
     }
 }

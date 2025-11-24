@@ -4,7 +4,7 @@ import { onMounted, onBeforeUnmount } from 'vue'
 // =========================
 // Props & Emits
 // =========================
-const props = defineProps<{
+defineProps<{
     modelValue: boolean
     title?: string
 }>()

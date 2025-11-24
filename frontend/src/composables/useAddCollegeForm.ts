@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-export function useAddCollegeForm(emit: any) {
+export function useAddCollegeForm() {
 // =========================
 // State
 // =========================

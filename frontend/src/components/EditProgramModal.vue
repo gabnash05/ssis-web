@@ -31,7 +31,7 @@ const {
     loadProgram,
     handleSubmit,
     handleBackendErrors,
-} = useEditProgramForm(emit)
+} = useEditProgramForm()
 
 // =========================
 // Confirmation Dialog State and Methods
