@@ -2,6 +2,7 @@
 import type { SortOrder, TableColumn } from '../types'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { buildPhotoUrl } from '../utils/photoUrlHelper'
+import { ref } from 'vue'
 
 // =========================
 // Props & Emits
@@ -23,6 +24,12 @@ const emit = defineEmits<{
 }>()
 
 // =========================
+// Modal State
+// =========================
+const showModal = ref(false)
+const selectedStudent = ref<any>(null)
+
+// =========================
 // Methods
 // =========================
 function handleHeaderClick(col: TableColumn<any>) {
@@ -33,6 +40,30 @@ function handleHeaderClick(col: TableColumn<any>) {
     } else {
         emit('update:sortBy', col.key as string)
         emit('update:sortOrder', 'ASC')
+    }
+}
+
+function openPhotoModal(row: any) {
+    selectedStudent.value = row
+    showModal.value = true
+}
+
+function closeModal() {
+    showModal.value = false
+    selectedStudent.value = null
+}
+
+// Close modal when clicking outside the image
+function handleBackdropClick(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+        closeModal()
+    }
+}
+
+// Close modal with Escape key
+function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && showModal.value) {
+        closeModal()
     }
 }
 </script>
@@ -108,12 +139,19 @@ function handleHeaderClick(col: TableColumn<any>) {
                         ]"
                     >
                         <template v-if="col.key === 'photo_url'">
-                            <img
+                            <!-- Pressable Photo -->
+                            <button
                                 v-if="row.photo_path"
-                                :src="buildPhotoUrl(row.photo_path)"
-                                class="w-10 h-10 rounded-full object-cover"
-                                alt="Profile"
-                            />
+                                @click="openPhotoModal(row)"
+                                class="cursor-pointer hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-full"
+                                aria-label="View student photo"
+                            >
+                                <img
+                                    :src="buildPhotoUrl(row.photo_path)"
+                                    class="w-10 h-10 rounded-full object-cover"
+                                    alt="Profile"
+                                />
+                            </button>
                             
                             <div v-else class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
                                 <img 
@@ -175,6 +213,58 @@ function handleHeaderClick(col: TableColumn<any>) {
         </table>
         <LoadingSkeleton v-if="loading" />
     </div>
+
+    <!-- Photo Modal -->
+    <div
+        v-if="showModal"
+        class="modal-backdrop fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+        @click="handleBackdropClick"
+        @keydown="handleKeydown"
+    >
+        <div class="relative max-w-4xl max-h-full">
+            <!-- Close Button -->
+            <button
+                @click="closeModal"
+                class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
+                aria-label="Close modal"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <!-- Student Photo -->
+            <img
+                v-if="selectedStudent?.photo_path"
+                :src="buildPhotoUrl(selectedStudent.photo_path)"
+                class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                :alt="`Photo of ${selectedStudent.name || 'student'}`"
+            />
+            
+            <!-- Fallback if no photo -->
+            <div
+                v-else
+                class="w-64 h-64 bg-gray-700 rounded-lg flex items-center justify-center text-white"
+            >
+                <div class="text-center">
+                    <img 
+                        src="../assets/icons/circle-user.svg" 
+                        class="w-20 h-20 mx-auto mb-4 filter invert opacity-50" 
+                        alt="No profile"
+                    />
+                    <p class="text-gray-400">No photo available</p>
+                </div>
+            </div>
+            
+            <!-- Student Name (if available) -->
+            <div
+                v-if="selectedStudent?.name"
+                class="text-white text-center mt-4 text-lg font-semibold"
+            >
+                {{ selectedStudent.name }}
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped>
@@ -200,5 +290,19 @@ function handleHeaderClick(col: TableColumn<any>) {
 .group:hover img[alt="Delete Hover"] {
     filter: invert(32%) sepia(86%) saturate(2643%) hue-rotate(340deg) brightness(96%) contrast(103%);
     transition: filter 0.1s ease-in-out;
+}
+
+/* Modal animations */
+.modal-backdrop {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 </style>
