@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SortOrder, TableColumn } from '../types'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import { buildPhotoUrl } from '../utils/photoUrlHelper'
 
 // =========================
 // Props & Emits
@@ -106,8 +107,28 @@ function handleHeaderClick(col: TableColumn<any>) {
                             (row[col.key] === 'Malik' || row[col.key] === 'Maulana') ? ' text-yellow-300 font-medium' : ''
                         ]"
                     >
-                        {{ row[col.key] && row[col.key] !== '' ? row[col.key] : '-' }}
+                        <template v-if="col.key === 'photo_url'">
+                            <img
+                                v-if="row.photo_path"
+                                :src="buildPhotoUrl(row.photo_path)"
+                                class="w-10 h-10 rounded-full object-cover"
+                                alt="Profile"
+                            />
+                            
+                            <div v-else class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                                <img 
+                                    src="../assets/icons/circle-user.svg" 
+                                    class="w-6 h-6 text-gray-400 filter invert" 
+                                    alt="No profile"
+                                />
+                            </div>
+                        </template>
+                        
+                        <template v-else>
+                            {{ row[col.key] && row[col.key] !== '' ? row[col.key] : '-' }}
+                        </template>
                     </td>
+
                     <!-- Actions Column -->
                     <td class="px-4 py-3 text-right flex items-center justify-end gap-2">
                         <!-- Edit Button -->

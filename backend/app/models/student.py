@@ -20,7 +20,7 @@ class Student(BaseModel):
         self.year_level = year_level
         self.gender = gender
         self.program_code = program_code
-        self.photo_path = ""
+        self.photo_path = photo_path
     
     @property
     def table_name(self) -> str:
@@ -260,7 +260,7 @@ class Student(BaseModel):
         instance = cls()
         result = instance._execute_query(
             """
-            SELECT id_number, first_name, last_name, year_level, gender, program_code
+            SELECT id_number, first_name, last_name, year_level, gender, program_code, photo_path
             FROM students
             WHERE id_number = :id_number
             """,
@@ -276,7 +276,7 @@ class Student(BaseModel):
         instance = cls()
         result = instance._execute_query(
             """
-            SELECT id_number, first_name, last_name, year_level, gender, program_code
+            SELECT id_number, first_name, last_name, year_level, gender, program_code, photo_path
             FROM students
             WHERE program_code = :program_code
             ORDER BY last_name, first_name
@@ -313,7 +313,7 @@ class Student(BaseModel):
         
         # Execute search query
         query = f"""
-            SELECT id_number, first_name, last_name, year_level, gender, program_code
+            SELECT id_number, first_name, last_name, year_level, gender, program_code, photo_path
             FROM students
             {filters}
             {sort_clause}
@@ -322,6 +322,8 @@ class Student(BaseModel):
         
         result = instance._execute_query(query, params)
         students = [cls.from_dict(dict(row)) for row in result.mappings().all()] if result else []
+
+        print([student.to_dict() for student in students][0])
         
         # Get total count
         count_query = f"SELECT COUNT(*) FROM students {filters}"
@@ -336,7 +338,7 @@ class Student(BaseModel):
         instance = cls()
         result = instance._execute_query(
             """
-            SELECT id_number, first_name, last_name, year_level, gender, program_code
+            SELECT id_number, first_name, last_name, year_level, gender, program_code, photo_path
             FROM students
             ORDER BY last_name, first_name
             """

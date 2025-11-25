@@ -17,6 +17,7 @@ import type { SortOrder, Student } from '../types'
 // Table Columns
 // =========================
 const studentColumns = [
+    { key: 'photo_url', label: 'Photo', sortable: false },
     { key: 'id_number', label: 'ID Number', sortable: true },
     { key: 'first_name', label: 'First Name', sortable: true },
     { key: 'last_name', label: 'Last Name', sortable: true },
