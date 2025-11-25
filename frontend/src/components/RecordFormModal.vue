@@ -4,9 +4,10 @@ import { onMounted, onBeforeUnmount } from 'vue'
 // =========================
 // Props & Emits
 // =========================
-defineProps<{
+const props = defineProps<{
     modelValue: boolean
     title?: string
+    loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,12 +20,16 @@ const emit = defineEmits<{
 // Methods
 // =========================
 function close() {
-    emit('update:modelValue', false)
-    emit('cancel')
+    if (!props.loading) { // Only allow close if not loading
+        emit('update:modelValue', false)
+        emit('cancel')
+    }
 }
 
 function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') close()
+    if (e.key === 'Escape' && !props.loading) { // Only close with Escape if not loading
+        close()
+    }
 }
 
 // =========================
@@ -44,7 +49,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
                 <!-- Modal Container -->
                 <div
                     class="bg-glass-lg border border-white/10 rounded-2xl shadow-xl w-[32rem] p-6 relative"
+                    :class="{ 'pointer-events-none': loading }"
                 >
+                    <!-- Loading Overlay -->
+                    <div
+                        v-if="loading"
+                        class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl z-10"
+                    >
+                        <div class="flex items-center gap-3 text-white">
+                            <div class="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            <span>Saving...</span>
+                        </div>
+                    </div>
+
                     <!-- Header -->
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-semibold text-white">
@@ -52,7 +69,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
                         </h2>
                         <button
                             @click="close"
-                            class="p-1 rounded-md hover:bg-white/10 transition cursor-pointer"
+                            :disabled="loading"
+                            class="p-1 rounded-md hover:bg-white/10 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Close"
                         >
                             <img src="../assets/icons/cross.svg" class="w-5 h-5 filter invert" />
@@ -68,7 +86,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
                     <div class="flex justify-end gap-3 mt-6">
                         <button
                             @click="$emit('submit')"
-                            class="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer"
+                            :disabled="loading"
+                            class="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Save
                         </button>
@@ -78,7 +97,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
         </transition>
     </Teleport>
 </template>
-
 
 <style scoped>
 .fade-enter-active,

@@ -322,8 +322,6 @@ class Student(BaseModel):
         
         result = instance._execute_query(query, params)
         students = [cls.from_dict(dict(row)) for row in result.mappings().all()] if result else []
-
-        print([student.to_dict() for student in students][0])
         
         # Get total count
         count_query = f"SELECT COUNT(*) FROM students {filters}"

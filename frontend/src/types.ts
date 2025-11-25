@@ -6,6 +6,7 @@ export interface Student {
     year_level: number;
     gender: Gender;
     program_code: string;   //FK to Program.program_code
+    photo_path: string | null; // Path to photo in storage, null if no photo
 }
 
 export interface Program {

@@ -2,7 +2,9 @@
 import { watch, ref } from 'vue'
 import RecordFormModal from './RecordFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import StudentAvatarUploader from './StudentAvatarUploader.vue'
 import { useEditStudentForm } from '../composables/useEditStudentForm.ts'
+import { buildPhotoUrl } from '../utils/photoUrlHelper.ts';
 import type { Student } from '../types.ts';
 
 // =========================
@@ -11,6 +13,7 @@ import type { Student } from '../types.ts';
 const props = defineProps<{
     modelValue: boolean
     student: Student | null
+    loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +30,7 @@ const {
     college_code,
     colleges,
     filteredPrograms,
+    avatarFile,
     generalError,
     handleSubmit,
     handleIdInput,
@@ -34,7 +38,18 @@ const {
     fetchInitialData,
     loadStudent,
     handleBackendErrors,
+    requestAvatarUpload,
+    uploadToSupabase,
+    finalizeAvatar,
+    fetchAvatarUrl,
+    removeAvatar,
 } = useEditStudentForm()
+
+// =========================
+// Local State for Existing Avatar
+// =========================
+const existingAvatarUrl = ref<string>('')
+const removeExistingPhoto = ref(false)
 
 // =========================
 // Confirmation Dialog State and Methods
@@ -53,7 +68,13 @@ async function confirmSubmit() {
     isSubmitting.value = true 
     
     try {
-        emit('submit', { ...editedStudent.value })
+        const studentData = { ...editedStudent.value }
+        
+        if (removeExistingPhoto.value) {
+            studentData.photo_path = ''
+        }
+        
+        emit('submit', studentData)
     } catch (err) {
         console.error("Submission error:", err)
     } finally {
@@ -66,6 +87,21 @@ function cancelSubmit() {
     showConfirm.value = false
 }
 
+
+// =========================
+// Load Student with Avatar
+// =========================
+async function loadStudentWithAvatar(student: Student) {
+    loadStudent(student)
+    
+    // Load existing avatar if available
+    if (student.photo_path) {
+        existingAvatarUrl.value = buildPhotoUrl(student.photo_path)
+    } else {
+        existingAvatarUrl.value = ''
+    }
+}
+
 // =========================
 // Watch for Modal Open
 // =========================
@@ -75,7 +111,7 @@ watch(
         if (isOpen && props.student) {
             resetForm()
             await fetchInitialData()
-            loadStudent(props.student)
+            await loadStudentWithAvatar(props.student)
         }
     }
 )
@@ -84,7 +120,7 @@ watch(
     () => props.student,
     (student) => {
         if (props.modelValue && student) {
-            loadStudent(student)
+            loadStudentWithAvatar(student)
         }
     },
     { immediate: true }
@@ -92,7 +128,13 @@ watch(
 
 // Expose the handleBackendErrors function for parent components
 defineExpose({
-    handleBackendErrors
+    handleBackendErrors,
+    requestAvatarUpload,
+    uploadToSupabase,
+    finalizeAvatar,
+    avatarFile,
+    fetchAvatarUrl,
+    removeAvatar,
 })
 </script>
 
@@ -100,6 +142,7 @@ defineExpose({
     <RecordFormModal
         :model-value="modelValue"
         title="Edit Student"
+        :loading="loading"
         @update:modelValue="$emit('update:modelValue', $event)"
         @submit="handleValidatedSubmit"
         @cancel="resetForm"
@@ -108,7 +151,14 @@ defineExpose({
             Edit the student's information below.
         </p>
 
-        <div class="flex flex-col gap-4">
+        <div class="max-h-[65vh] overflow-y-auto pr-2 flex flex-col gap-4">
+            <!-- Avatar Uploader with existing photo -->
+            <StudentAvatarUploader
+                v-model="avatarFile"
+                :existing-avatar-url="existingAvatarUrl"
+                @remove-existing="removeExistingPhoto = true"
+            />
+
             <!-- ID Number -->
             <div>
                 <label class="block text-xs text-white/70 mb-1">

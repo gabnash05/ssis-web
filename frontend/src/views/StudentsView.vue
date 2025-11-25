@@ -49,6 +49,8 @@ const showConfirmDialog = ref(false);
 const recordToDelete = ref<Student | null>(null);
 const addModalRef = ref<any>(null);
 const editModalRef = ref<any>(null);
+const isAddingStudent = ref(false);
+const isEditingStudent = ref(false);
 
 // =========================
 // Fetch Students
@@ -102,6 +104,8 @@ async function handleDelete(student: Student) {
 }
 
 async function handleStudentSubmit(student: Student) {
+    isAddingStudent.value = true; // Start loading
+    
     try {
         const { data: createdStudent } = await createStudent(student);
 
@@ -144,16 +148,44 @@ async function handleStudentSubmit(student: Student) {
         if (addModalRef.value?.handleBackendErrors) {
             addModalRef.value.handleBackendErrors(err);
         }
+    } finally {
+        isAddingStudent.value = false; // End loading
     }
 }
 
 async function handleStudentEdit(student: Student) {
     if (!recordToEdit.value) return;
+    isEditingStudent.value = true; // Start loading
+    
     try {
         await updateStudent(recordToEdit.value.id_number, student);
+        
+        if (editModalRef.value?.avatarFile) {
+            try {
+                const uploadInfo = await editModalRef.value.requestAvatarUpload(
+                    recordToEdit.value.id_number,
+                    editModalRef.value.avatarFile
+                );
+
+                await editModalRef.value.uploadToSupabase(uploadInfo.upload_url, editModalRef.value.avatarFile);
+                await editModalRef.value.finalizeAvatar(recordToEdit.value.id_number, uploadInfo.avatar_path);
+                
+                editModalRef.value.clearWarnings?.();
+                
+            } catch (avatarError) {
+                console.error("Avatar upload failed but student was updated:", avatarError);
+                if (editModalRef.value?.showAvatarWarning) {
+                    editModalRef.value.showAvatarWarning(
+                        'Student information was updated successfully, but avatar upload failed. You can try updating the avatar again later.'
+                    );
+                }
+            }
+        }
+
         store.invalidateAll()
         showEditModal.value = false;
         recordToEdit.value = null;
+        
         await store.fetchStudents({
             page: currentPage.value,
             page_size: pageSize.value,
@@ -167,6 +199,8 @@ async function handleStudentEdit(student: Student) {
         if (editModalRef.value?.handleBackendErrors) {
             editModalRef.value.handleBackendErrors(err);
         }
+    } finally {
+        isEditingStudent.value = false; // End loading
     }
 }
 
@@ -244,6 +278,7 @@ async function handleStudentDelete() {
         <AddStudentModal
             ref="addModalRef"
             v-model="showAddModal"
+            :loading="isAddingStudent"
             @submit="handleStudentSubmit"
         />
 
@@ -252,6 +287,7 @@ async function handleStudentDelete() {
             ref="editModalRef"
             v-model="showEditModal"
             :student="recordToEdit"
+            :loading="isEditingStudent"
             @submit="handleStudentEdit"
         />
 

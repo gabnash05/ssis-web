@@ -8,7 +8,11 @@ import { useAddStudentForm } from '../composables/useAddStudentForm'
 // =========================
 // Props & Emits
 // =========================
-const props = defineProps<{ modelValue: boolean }>()
+const props = defineProps<{ 
+    modelValue: boolean
+    loading?: boolean
+}>()
+
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
     (e: 'submit', student: any): void
@@ -88,6 +92,7 @@ watch(
     <RecordFormModal
         :model-value="modelValue"
         title="Add New Student"
+        :loading="loading"
         @update:modelValue="$emit('update:modelValue', $event)"
         @submit="handleValidatedSubmit"
         @cancel="resetForm"
