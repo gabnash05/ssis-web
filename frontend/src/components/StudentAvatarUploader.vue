@@ -8,7 +8,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: File | null): void
-    (e: 'removeExisting'): void  // Add this new emit
+    (e: 'removeExisting'): void
+    (e: 'error', error: { message: string, code?: string }): void // Add error emit
 }>()
 
 const avatarPreview = ref<string>('')
@@ -28,13 +29,25 @@ function handleFileSelect(event: Event) {
     if (file) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file')
+            emit('error', {
+                message: 'Please select an image file',
+                code: 'INVALID_FILE_TYPE'
+            })
+            if (fileInput.value) {
+                fileInput.value.value = ''
+            }
             return
         }
         
         // Validate file size (e.g., 5MB max)
         if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB')
+            emit('error', {
+                message: 'File size must be less than 5MB',
+                code: 'FILE_TOO_LARGE'
+            })
+            if (fileInput.value) {
+                fileInput.value.value = ''
+            }
             return
         }
         
@@ -49,6 +62,9 @@ function handleFileSelect(event: Event) {
         
         // User selected a new file, so they're replacing the existing one
         hasExistingAvatar.value = false
+        
+        // Clear any previous errors
+        emit('error', { message: '' })
     }
 }
 
@@ -73,6 +89,9 @@ function removeAvatar() {
     if (fileInput.value) {
         fileInput.value.value = ''
     }
+    
+    // Clear any errors
+    emit('error', { message: '' })
 }
 
 function triggerFileInput() {

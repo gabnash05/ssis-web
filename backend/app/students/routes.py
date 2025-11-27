@@ -314,6 +314,66 @@ def confirm_avatar_upload(id_number: str):
         }, 500)
 
 
+@bp.delete("/<id_number>/avatar")
+@jwt_required()
+def delete_avatar_route(id_number: str):
+    """Delete student avatar from storage and update student record"""
+    try:
+        student_result = get_student(id_number)
+        if not student_result["success"]:
+            return make_response({
+                "status": "error",
+                "message": "Student not found",
+                "error_code": "STUDENT_NOT_FOUND"
+            }, 404)
+        
+        student_data = student_result["data"]
+        avatar_path = student_data.get("photo_path")
+        
+        if not avatar_path:
+            return make_response({
+                "status": "success",
+                "message": "No avatar to delete"
+            }, 200)
+        
+        # Remove leading slash if present
+        if avatar_path.startswith('/'):
+            avatar_path = avatar_path[1:]
+        
+        # Delete from storage
+        response = supabase.storage.from_(bucket).remove([avatar_path])
+        
+        if hasattr(response, 'error') and response.error:
+            return make_response({
+                "status": "error",
+                "message": f"Failed to delete avatar from storage: {response.error.message}",
+                "error_code": "AVATAR_DELETE_ERROR"
+            }, 500)
+        
+        # Update student record to remove photo_path
+        result = update_student(id_number, {"photo_path": ""})
+        
+        if result["success"]:
+            return make_response({
+                "status": "success",
+                "message": "Avatar deleted successfully",
+                "data": result["data"]
+            }, 200)
+        else:
+            return make_response({
+                "status": "error",
+                "message": result["message"],
+                "error_code": result["error_code"]
+            }, 500)
+            
+    except Exception as e:
+        return make_response({
+            "status": "error", 
+            "message": f"Unexpected error occurred: {str(e)}",
+            "error_code": "UNEXPECTED_ERROR"
+        }, 500)
+
+
 @bp.get("/<id_number>/avatar/url")
 @jwt_required()
 def get_avatar_url(id_number: str):

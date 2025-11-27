@@ -31,7 +31,7 @@ const {
     resetForm,
     fetchInitialData,
     handleBackendErrors,
-    requestAvatarUpload, // Add these functions
+    requestAvatarUpload,
     uploadToSupabase,
     finalizeAvatar,
 } = useAddStudentForm()
@@ -41,6 +41,15 @@ const {
 // =========================
 const showConfirm = ref(false)
 const isSubmitting = ref(false)
+
+// =========================
+// Avatar Error State
+// =========================
+const avatarError = ref<string>('')
+
+function handleAvatarError(error: { message: string, code?: string }) {
+    avatarError.value = error.message
+}
 
 function handleValidatedSubmit() {
     const isValid = handleSubmit()
@@ -82,6 +91,7 @@ watch(
     async (isOpen) => {
         if (isOpen) {
             resetForm()
+            avatarError.value = '' // Clear avatar error
             await fetchInitialData()
         }
     }
@@ -103,8 +113,19 @@ watch(
 
         <div class="max-h-[65vh] overflow-y-auto pr-2 flex flex-col gap-4">
 
+            <!-- General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
+            </div>
+
+            <!-- Avatar Error Messages -->
+            <div v-if="avatarError" class="p-2 rounded text-red-400 text-sm">
+                {{ avatarError }}
+            </div>
+
             <StudentAvatarUploader
                 v-model="avatarFile"
+                @error="handleAvatarError"
             />
             
             <!-- ID Number -->
@@ -220,11 +241,6 @@ watch(
                         {{ program.code }} - {{ program.name }}
                     </option>
                 </select>
-            </div>
-
-            <!-- General Error Message -->
-            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
-                {{ generalError }}
             </div>
         </div>
     </RecordFormModal>

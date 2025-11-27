@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
                 @click="isDropdownOpen = !isDropdownOpen"
                 class="flex items-center gap-2 px-3 py-2 rounded-2xl bg-glass border border-white/20 cursor-pointer hover:bg-white/20 transition text-white/80 text-sm"
             >
-                <img src="../assets/icons/add-filter.svg" alt="Filter" class="w-4 h-4 filter invert z-10" />
+                <img src="../assets/icons/category-search.svg" alt="Filter" class="w-6 h-6 z-10" />
                 <!-- Show label only if not 'none' -->
                 <span v-if="selectedSearchBy !== 'none'">
                     {{ optionsWithNone.find(opt => opt.key === selectedSearchBy)?.label }}

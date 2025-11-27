@@ -2,6 +2,8 @@ from typing import Dict, Any, List, Tuple, Optional
 from ..models import Student
 from ..models.base_model import ModelError, ValidationError, DatabaseError, NotFoundError
 from ..utils.validation_utils import _valid_id_number
+import os
+from ..supabase_client import supabase  # Add this import
 
 
 def search_students(

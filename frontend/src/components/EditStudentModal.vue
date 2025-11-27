@@ -57,6 +57,15 @@ const removeExistingPhoto = ref(false)
 const showConfirm = ref(false)
 const isSubmitting = ref(false)
 
+// =========================
+// Avatar Error State
+// =========================
+const avatarError = ref<string>('')
+
+function handleAvatarError(error: { message: string, code?: string }) {
+    avatarError.value = error.message
+}
+
 function handleValidatedSubmit() {
     const isValid = handleSubmit()
     if (!isValid) return
@@ -110,6 +119,7 @@ watch(
     async (isOpen) => {
         if (isOpen && props.student) {
             resetForm()
+            avatarError.value = ''
             await fetchInitialData()
             await loadStudentWithAvatar(props.student)
         }
@@ -120,6 +130,7 @@ watch(
     () => props.student,
     (student) => {
         if (props.modelValue && student) {
+            avatarError.value = ''
             loadStudentWithAvatar(student)
         }
     },
@@ -152,11 +163,23 @@ defineExpose({
         </p>
 
         <div class="max-h-[65vh] overflow-y-auto pr-2 flex flex-col gap-4">
+
+            <!-- General Error Message -->
+            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
+                {{ generalError }}
+            </div>
+
+            <!-- Avatar Error Messages -->
+            <div v-if="avatarError" class="p-2 rounded text-red-400 text-sm">
+                {{ avatarError }}
+            </div>
+            
             <!-- Avatar Uploader with existing photo -->
             <StudentAvatarUploader
                 v-model="avatarFile"
                 :existing-avatar-url="existingAvatarUrl"
                 @remove-existing="removeExistingPhoto = true"
+                @error="handleAvatarError"
             />
 
             <!-- ID Number -->
@@ -274,10 +297,6 @@ defineExpose({
                 </select>
             </div>
 
-            <!-- General Error Message -->
-            <div v-if="generalError" class="p-2 rounded text-red-400 text-sm">
-                {{ generalError }}
-            </div>
         </div>
     </RecordFormModal>
 
