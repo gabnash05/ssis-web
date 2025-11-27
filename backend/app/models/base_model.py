@@ -1,7 +1,7 @@
 """
 Base model class providing common database operations and error handling.
 """
-from typing import Dict, Any, List, Optional, TypeVar, Generic
+from typing import Dict, Any, List, Optional, TypeVar, Generic, Tuple
 from abc import ABC, abstractmethod
 from ..db.database import execute_sql
 import logging
@@ -88,30 +88,63 @@ class BaseModel(ABC, Generic[T]):
                 details={"missing_fields": missing_fields}
             )
     
-    def _build_search_filter(self, search_by: str, search_term: str, searchable_fields: List[str]) -> tuple:
-        """Build search filter clause and parameters, with casting for numeric fields."""
-        if not search_term:
+    def _build_search_filter(self, search_by: str, search_term: str, allowed_fields: List[str]) -> Tuple[str, Dict]:
+        """Build search filter with support for tokenized multi-field search."""
+        if not search_term or not search_term.strip():
             return "", {}
         
-        params = {"search_term": f"%{search_term}%"}
-
-        numeric_fields = {"year_level"}  
-
-        if search_by and search_by in searchable_fields:
-            if search_by in numeric_fields:
-                filters = f"WHERE CAST({search_by} AS TEXT) ILIKE :search_term"
-            else:
-                filters = f"WHERE {search_by} ILIKE :search_term"
-        else:
-            conditions = []
-            for field in searchable_fields:
-                if field in numeric_fields:
-                    conditions.append(f"CAST({field} AS TEXT) ILIKE :search_term")
-                else:
-                    conditions.append(f"{field} ILIKE :search_term")
-            filters = f"WHERE {' OR '.join(conditions)}"
+        search_term = search_term.strip()
+        params = {}
         
-        return filters, params
+        # If a specific field is specified, use traditional search
+        if search_by and search_by in allowed_fields:
+            return self._build_single_field_filter(search_by, search_term, params)
+        
+        # Otherwise, use tokenized search across multiple fields
+        return self._build_tokenized_search_filter(search_term, allowed_fields, params)
+    
+    def _build_single_field_filter(self, field: str, search_term: str, params: Dict) -> Tuple[str, Dict]:
+        """Build filter for a single field."""
+        param_name = f"search_{field}"
+        params[param_name] = f"%{search_term}%"
+        # Use ILIKE for case-insensitive search (PostgreSQL)
+        return f"WHERE {field} ILIKE :{param_name}", params
+
+    def _build_tokenized_search_filter(self, search_term: str, allowed_fields: List[str], params: Dict) -> Tuple[str, Dict]:
+        """Build tokenized search filter that searches each term across multiple fields."""
+        # Split search term into individual words/tokens
+        tokens = [token.strip() for token in search_term.split() if token.strip()]
+        
+        if not tokens:
+            return "", {}
+        
+        # Define which fields to search for tokenized queries
+        searchable_fields = ["first_name", "last_name", "id_number", "program_code"]
+        
+        conditions = []
+        param_index = 0
+        
+        # For each token, create OR conditions across all searchable fields
+        for i, token in enumerate(tokens):
+            token_conditions = []
+            for field in searchable_fields:
+                if field in allowed_fields:
+                    param_name = f"token_{param_index}"
+                    params[param_name] = f"%{token}%"
+                    # Use ILIKE for case-insensitive search (PostgreSQL)
+                    token_conditions.append(f"{field} ILIKE :{param_name}")
+                    param_index += 1
+            
+            if token_conditions:
+                # All field conditions for this token are OR'd together
+                conditions.append(f"({' OR '.join(token_conditions)})")
+        
+        if not conditions:
+            return "", {}
+        
+        # All token conditions are AND'd together
+        where_clause = "WHERE " + " AND ".join(conditions)
+        return where_clause, params
     
     def _build_sort_clause(self, sort_by: str, sort_order: str, allowed_sort_fields: List[str]) -> str:
         """Build ORDER BY clause with context-aware secondary sorting rules."""

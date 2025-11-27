@@ -127,7 +127,7 @@ function handleKeydown(event: KeyboardEvent) {
                     v-for="(row, rowIndex) in rows"
                     :key="rowIndex"
                     class="hover:bg-white/5 transition"
-                    :title="(Object.values(row).includes('Malik') || Object.values(row).includes('Maulana')) ? 'Flat 1 Sir Please HEHE <3' : ''"
+                    :title="(Object.values(row).includes('Malikey') || Object.values(row).includes('Maulana')) ? 'Flat 1 Sir Please HEHE <3' : ''"
                 >
                     <td
                         v-for="col in columns"
