@@ -12,10 +12,21 @@ const props = defineProps<{
 }>()
 
 // Add a "None" option at the start dynamically
-const optionsWithNone = computed(() => [
+const optionsWithNone = computed(() => {
+  const excludedKeys = ['photo_url', 'year_level', 'gender'];
+
+  console.log('Original Options:', props.searchByOptions);
+  
+  // Filter out the excluded options
+  const filteredOptions = props.searchByOptions.filter(
+    option => !excludedKeys.includes(option.key)
+  );
+  
+  return [
     { key: 'none', label: 'None' },
-    ...props.searchByOptions
-])
+    ...filteredOptions
+  ];
+});
 
 const searchTerm = ref('')
 const isOpen = ref(true)
